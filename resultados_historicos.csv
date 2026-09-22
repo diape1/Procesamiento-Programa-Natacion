@@ -1,25 +1,47 @@
 ﻿Nombre,Tipo,Año,Evento,Fecha Inicio,Fecha Fin,Curso,Estilo,Distancia,Posicion,Tiempo,Segundos,Participantes
 Ian,Oficial,2026,1er Torneo Regional Norte,2026-09-19,2026-09-20,CC,Libre,50,8,31.16,31.16,37
 Ian,Oficial,2026,1er Torneo Regional Norte,2026-09-19,2026-09-20,CC,Dorso,50,9,38.76,38.76,32
+Ian,Oficial,2026,1er Torneo Regional Norte,2026-09-19,2026-09-20,CC,Libre,100,6,1.08.98,68.98,39
+Ian,Oficial,2026,1er Torneo Regional Norte,2026-09-19,2026-09-20,CC,Mariposa,100,5,1.19.25,79.25,16
+Ian,Oficial,2026,1er Torneo Regional Norte,2026-09-19,2026-09-20,CC,Cobinado,100,8,1.24.85,84.85,30
+Ian,Oficial,2026,1er Torneo Regional Norte,2026-09-19,2026-09-20,CC,Cobinado,200,5,2.53.91,173.91,11
 Iker,Oficial,2026,2do Torneo Regional Norte,2026-05-16,2026-05-17,CL,Libre,50,20,46.2,46.2,22
 Iker,Oficial,2026,2do Torneo Regional Norte,2026-05-16,2026-05-17,CL,Dorso,50,20,57.93,57.93,22
+Iker,Oficial,2026,2do Torneo Regional Norte,2026-05-16,2026-05-17,CL,Pecho,50,14,1.12.81,72.81,16
+Iker,Oficial,2026,2do Torneo Regional Norte,2026-05-16,2026-05-17,CL,Libre,100,19,1.46.03,106.03,22
 Ian,Oficial,2026,2do Torneo Zona Norte,2026-05-16,2026-05-17,CL,Libre,50,11,33.24,33.24,32
 Ian,Oficial,2026,2do Torneo Zona Norte,2026-05-16,2026-05-17,CL,Dorso,50,15,42.98,42.98,26
+Ian,Oficial,2026,2do Torneo Zona Norte,2026-05-16,2026-05-17,CL,Libre,100,10,1.13.69,73.69,30
+Ian,Oficial,2026,2do Torneo Zona Norte,2026-05-16,2026-05-17,CL,Dorso,100,11,1.33.95,93.95,19
+Ian,Oficial,2026,2do Torneo Zona Norte,2026-05-16,2026-05-17,CL,Mariposa,100,5,1.26.15,86.15,15
+Ian,Oficial,2026,2do Torneo Zona Norte,2026-05-16,2026-05-17,CL,Libre,800,4,12.24.86,744.86,5
 Iker,Recreativa,2026,Valvidub T1E2,2026-05-11,2026-05-11,CC,Libre,25,6,21.4,21.4,11
 Iker,Recreativa,2026,Valvidub T1E2,2026-05-11,2026-05-11,CC,Dorso,25,3,28.07,28.07,11
 Iker,Recreativa,2026,Valvidub T1E2,2026-05-11,2026-05-11,CC,Mariposa,25,5,29.36,29.36,8
 Iker,Recreativa,2026,Valvidub T1E2,2026-05-11,2026-05-11,CC,Libre,50,3,46.61,46.61,8
 Ian,Recreativa,2026,Valvidub T1E2,2026-05-03,2026-05-03,CC,Libre,50,6,32.24,32.24,27
 Ian,Recreativa,2026,Valvidub T1E2,2026-05-03,2026-05-03,CC,Mariposa,50,5,37.7,37.7,20
+Ian,Recreativa,2026,Valvidub T1E2,2026-05-03,2026-05-03,CC,Libre,100,4,1.12.94,72.94,17
+Ian,Recreativa,2026,Valvidub T1E2,2026-05-03,2026-05-03,CC,Cobinado,100,4,1.25.13,85.13,9
 Ian,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Libre,50,14,34.07,34.07,30
 Ian,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Dorso,50,11,42.36,42.36,28
 Ian,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Mariposa,50,12,38.14,38.14,28
+Ian,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Libre,100,6,1.11.97,71.97,26
+Ian,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Dorso,100,8,1.31.03,91.03,22
+Ian,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Mariposa,100,8,1.28.27,88.27,16
+Ian,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Libre,800,1,12.12.01,732.01,1
+Ian,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Cobinado,200,8,3.14.88,194.88,11
 Iker,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Libre,50,1,46.98,46.98,3
 Iker,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Dorso,50,2,57.47,57.47,3
+Iker,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Pecho,50,3,1.05.82,65.82,3
+Iker,Oficial,2026,1er Torneo Zona Norte,2026-03-28,2026-03-29,CL,Libre,100,2,1.48.70,108.7,3
 Ian,Oficial,2026,Asturiano,2026-03-12,2026-03-14,CL,Libre,50,12,33.5,33.5,27
 Ian,Oficial,2026,Asturiano,2026-03-12,2026-03-14,CL,Dorso,50,11,42.26,42.26,24
 Ian,Oficial,2026,Asturiano,2026-03-12,2026-03-14,CL,Mariposa,50,10,37.7,37.7,24
+Ian,Oficial,2026,Asturiano,2026-03-12,2026-03-14,CL,Dorso,100,11,1.28.87,88.87,23
+Ian,Oficial,2026,Asturiano,2026-03-12,2026-03-14,CL,Mariposa,100,4,1.24.42,84.42,21
 Iker,Oficial,2026,Asturiano,2026-03-12,2026-03-14,CL,Libre,50,7,45.65,45.65,19
+Iker,Oficial,2026,Asturiano,2026-03-12,2026-03-14,CL,Pecho,50,12,1.13.86,73.86,19
 Iker,Recreativa,2026,Valvidub T1E1,2026-03-09,2026-03-09,CC,Libre,25,5,21.69,21.69,12
 Iker,Recreativa,2026,Valvidub T1E1,2026-03-09,2026-03-09,CC,Dorso,25,6,30.07,30.07,12
 Iker,Recreativa,2026,Valvidub T1E1,2026-03-09,2026-03-09,CC,Pecho,25,7,35.87,35.87,10
@@ -27,14 +49,26 @@ Iker,Recreativa,2026,Valvidub T1E1,2026-03-09,2026-03-09,CC,Libre,50,3,51.62,51.
 Ian,Recreativa,2026,Valvidub T1E1,2026-03-08,2026-03-08,CC,Libre,50,7,33.88,33.88,24
 Ian,Recreativa,2026,Valvidub T1E1,2026-03-08,2026-03-08,CC,Dorso,50,4,42.45,42.45,17
 Ian,Recreativa,2026,Valvidub T1E1,2026-03-08,2026-03-08,CC,Mariposa,50,6,39.17,39.17,22
+Ian,Recreativa,2026,Valvidub T1E1,2026-03-08,2026-03-08,CC,Libre,100,3,1.13.37,73.37,13
 Ian,Oficial,2026,Juegos CDMX,2026-02-26,2026-02-26,CL,Dorso,50,16,41.58,41.58,22
 Ian,Oficial,2026,Juegos CDMX,2026-02-26,2026-02-26,CL,Mariposa,50,13,38.21,38.21,15
+Ian,Oficial,2026,Juegos CDMX,2026-02-26,2026-02-26,CL,Libre,800,2,11.39.44,699.44,3
 Iker,Oficial,2026,Juegos CDMX,2026-02-26,2026-02-26,CL,Libre,50,10,47.93,47.93,22
 Iker,Oficial,2026,Juegos CDMX,2026-02-26,2026-02-26,CL,Dorso,50,9,56,56.0,21
+Iker,Oficial,2026,Juegos CDMX,2026-02-26,2026-02-26,CL,Pecho,50,11,1.10.04,70.03999999999999,15
 Iker,Oficial,2025,Opt. Campeonato,2025-11-14,2025-11-14,CC,Libre,50,2,48.92,48.92,5
+Iker,Oficial,2025,Opt. Campeonato,2025-11-14,2025-11-14,CC,Dorso,50,3,1.02.27,62.27,5
+Iker,Oficial,2025,Opt. Campeonato,2025-11-14,2025-11-14,CC,Pecho,50,3,1.17.42,77.42,5
+Iker,Oficial,2025,Opt. Campeonato,2025-11-14,2025-11-14,CC,Mariposa,50,2,1.17.65,77.65,2
+Iker,Oficial,2025,Opt. Campeonato,2025-11-14,2025-11-14,CC,Libre,100,3,1.55.35,115.35,5
 Iker,Oficial,2025,Regional 2 CDMX,2025-11-03,2025-11-03,CC,Libre,50,21,52.53,52.53,22
+Iker,Oficial,2025,Regional 2 CDMX,2025-11-03,2025-11-03,CC,Dorso,50,22,1.02.30,62.3,22
+Iker,Oficial,2025,Regional 2 CDMX,2025-11-03,2025-11-03,CC,Pecho,50,20,1.12.99,72.99,21
+Iker,Oficial,2025,Regional 2 CDMX,2025-11-03,2025-11-03,CC,Mariposa,50,19,1.20.85,80.85,19
+Iker,Oficial,2025,Regional 2 CDMX,2025-11-03,2025-11-03,CC,Libre,100,19,1.51.73,111.72999999999999,20
 Ian,Recreativa,2025,Valvidub T2E2,2025-10-27,2025-10-27,CC,Libre,50,10,34.89,34.89,28
 Ian,Recreativa,2025,Valvidub T2E2,2025-10-27,2025-10-27,CC,Pecho,50,6,49.56,49.56,17
+Ian,Recreativa,2025,Valvidub T2E2,2025-10-27,2025-10-27,CC,Libre,100,2,1.16.40,76.4,16
 Ian,Recreativa,2025,Valvidub T2E2,2025-10-27,2025-10-27,CC,Mariposa,100,7,40.12,40.12,24
 Ian,Recreativa,2025,Las Estacas,2025-10-19,2025-10-19,AA,Libre Contra Corriente,1000,1,19.31,19.31,2
 Iker,Recreativa,2025,Valvidub T2E2,2025-10-01,2025-10-01,CC,Libre,25,7,21.44,21.44,18
@@ -44,18 +78,29 @@ Iker,Recreativa,2025,Valvidub T2E2,2025-10-01,2025-10-01,CC,Libre,50,7,51.03,51.
 Ian,Oficial,2025,1er Torneo Elite/Platino,2025-09-27,2025-09-29,CC,Libre,50,5,33.29,33.29,
 Ian,Oficial,2025,1er Torneo Elite/Platino,2025-09-27,2025-09-29,CC,Dorso,50,8,44.17,44.17,8
 Ian,Oficial,2025,1er Torneo Elite/Platino,2025-09-27,2025-09-29,CC,Mariposa,50,5,38.2,38.2,
+Ian,Oficial,2025,1er Torneo Elite/Platino,2025-09-27,2025-09-29,CC,Libre,100,3,1.12.78,72.78,
+Ian,Oficial,2025,1er Torneo Elite/Platino,2025-09-27,2025-09-29,CC,Mariposa,100,3,1.27.80,87.8,
+Ian,Oficial,2025,1er Torneo Elite/Platino,2025-09-27,2025-09-29,CC,Libre,200,3,2.39.00,159.0,6
+Ian,Oficial,2025,1er Torneo Elite/Platino,2025-09-27,2025-09-29,CC,Cobinado,100,2,1.27.84,87.84,4
+Ian,Oficial,2025,1er Torneo Elite/Platino,2025-09-27,2025-09-29,CC,Cobinado,200,3,3.04.95,184.95,
+Ian,Oficial,2025,Opt. Campeonato,2025-09-27,2025-09-29,CC,Libre,800,2,12.13.59,733.59,2
 Ian,Oficial,2025,Regional 2 CDMX,2025-09-27,2025-09-29,CC,Libre,50,20,34.99,34.99,34
 Ian,Oficial,2025,Regional 2 CDMX,2025-09-27,2025-09-29,CC,Dorso,50,13,42.87,42.87,29
 Ian,Oficial,2025,Regional 2 CDMX,2025-09-27,2025-09-29,CC,Pecho,50,16,47.59,47.59,30
 Ian,Oficial,2025,Regional 2 CDMX,2025-09-27,2025-09-29,CC,Mariposa,50,8,38.84,38.84,30
+Ian,Oficial,2025,Regional 2 CDMX,2025-09-27,2025-09-29,CC,Libre,100,18,1.18.77,78.77,33
+Ian,Oficial,2025,Regional 2 CDMX,2025-09-27,2025-09-29,CC,Libre,800,2,11.33.94,693.94,3
 Ian,Recreativa,2025,Valvidub T2E1,2025-09-21,2025-09-21,CC,Libre,50,9,34.69,34.69,44
 Ian,Recreativa,2025,Valvidub T2E1,2025-09-21,2025-09-21,CC,Mariposa,50,8,39.05,39.05,28
+Ian,Recreativa,2025,Valvidub T2E1,2025-09-21,2025-09-21,CC,Libre,100,,1.19.13,79.13,
+Ian,Recreativa,2025,Valvidub T2E1,2025-09-21,2025-09-21,CC,Mariposa,100,4,1.34.46,94.46000000000001,5
 Iker,Recreativa,2025,Valvidub T2E1,2025-09-21,2025-09-21,CC,Libre,25,17,21.55,21.55,33
 Iker,Recreativa,2025,Valvidub T2E1,2025-09-21,2025-09-21,CC,Dorso,25,24,30.4,30.4,31
 Iker,Recreativa,2025,Valvidub T2E1,2025-09-21,2025-09-21,CC,Pecho,25,,31.75,31.75,
 Iker,Recreativa,2025,Valvidub T2E1,2025-09-21,2025-09-21,CC,Libre,50,12,53.11,53.11,20
 Ian,Recreativa,2025,Valvidub T1E3,2025-06-29,2025-06-29,CC,Libre,50,20,36.06,36.06,55
 Ian,Recreativa,2025,Valvidub T1E3,2025-06-29,2025-06-29,CC,Mariposa,50,13,41.1,41.1,38
+Ian,Recreativa,2025,Valvidub T1E3,2025-06-29,2025-06-29,CC,Libre,100,8,1.18.69,78.69,31
 Iker,Recreativa,2025,Valvidub T1E3,2025-06-29,2025-06-29,CC,Libre,25,8,22.35,22.35,28
 Iker,Recreativa,2025,Valvidub T1E3,2025-06-29,2025-06-29,CC,Dorso,25,17,30.39,30.39,27
 Iker,Recreativa,2025,Valvidub T1E3,2025-06-29,2025-06-29,CC,Pecho,25,13,32.7,32.7,23
@@ -67,10 +112,17 @@ Iker,Recreativa,2025,Valvidub T1E2,2025-05-11,2025-05-11,CC,Libre,50,6,53.6,53.6
 Ian,Recreativa,2025,Valvidub T1E2,2025-05-05,2025-05-05,CC,Libre,50,15,35.83,35.83,56
 Ian,Recreativa,2025,Valvidub T1E2,2025-05-05,2025-05-05,CC,Dorso,50,21,56.58,56.58,47
 Ian,Recreativa,2025,Valvidub T1E2,2025-05-05,2025-05-05,CC,Mariposa,50,9,41.3,41.3,35
+Ian,Recreativa,2025,Valvidub T1E2,2025-05-05,2025-05-05,CC,Libre,100,8,1.19.76,79.76,33
+Ian,Oficial,2025,1er Torneo Fondo,2025-04-23,2025-04-25,CC,Libre,400,7,5.42.07,342.07,12
+Ian,Oficial,2025,1er Torneo Fondo,2025-04-23,2025-04-25,CC,Libre,800,4,11.39.98,699.98,7
 Ian,Oficial,2025,2do Torneo Elite,2025-04-23,2025-04-25,CL,Libre,50,40,36.9,36.9,54
 Ian,Oficial,2025,2do Torneo Elite,2025-04-23,2025-04-25,CL,Dorso,50,41,45.21,45.21,50
 Ian,Oficial,2025,2do Torneo Elite,2025-04-23,2025-04-25,CL,Pecho,50,33,49.79,49.79,46
 Ian,Oficial,2025,2do Torneo Elite,2025-04-23,2025-04-25,CL,Mariposa,50,32,43.19,43.19,43
+Ian,Oficial,2025,2do Torneo Elite,2025-04-23,2025-04-25,CL,Libre,100,28,1.20.00,80.0,40
+Ian,Oficial,2025,2do Torneo Elite,2025-04-23,2025-04-25,CL,Dorso,100,30,1.34.67,94.67,42
+Ian,Oficial,2025,2do Torneo Elite,2025-04-23,2025-04-25,CL,Mariposa,100,26,1.39.51,99.50999999999999,39
+Ian,Oficial,2025,2do Torneo Elite,2025-04-23,2025-04-25,CL,Libre,200,29,2.51.94,171.94,38
 Iker,Recreativa,2025,Alma Mater,2025-04-08,2025-04-09,CC,Libre,25,7,23.25,23.25,27
 Iker,Recreativa,2025,Alma Mater,2025-04-08,2025-04-09,CC,Dorso,25,9,30.28,30.28,28
 Iker,Recreativa,2025,Alma Mater,2025-04-08,2025-04-09,CC,Pecho,25,7,34.2,34.2,24
@@ -80,9 +132,13 @@ Ian,Oficial,2025,1er Torneo Elite,2025-04-05,2025-04-06,CL,Libre,50,31,35.99,35.
 Ian,Oficial,2025,1er Torneo Elite,2025-04-05,2025-04-06,CL,Dorso,50,36,44.52,44.52,46
 Ian,Oficial,2025,1er Torneo Elite,2025-04-05,2025-04-06,CL,Pecho,50,37,51.33,51.33,44
 Ian,Oficial,2025,1er Torneo Elite,2025-04-05,2025-04-06,CL,Mariposa,50,21,40.42,40.42,41
+Ian,Oficial,2025,1er Torneo Elite,2025-04-05,2025-04-06,CL,Libre,100,25,1.19.17,79.17,41
+Ian,Oficial,2025,1er Torneo Elite,2025-04-05,2025-04-06,CL,Dorso,100,28,1.34.99,94.99000000000001,37
+Ian,Oficial,2025,1er Torneo Elite,2025-04-05,2025-04-06,CL,Mariposa,100,18,1.39.63,99.63,25
 Ian,Recreativa,2025,Valvidub T1E1,2025-03-09,2025-03-09,CC,Libre,50,11,35.64,35.64,42
 Ian,Recreativa,2025,Valvidub T1E1,2025-03-09,2025-03-09,CC,Dorso,50,7,45.34,45.34,36
 Ian,Recreativa,2025,Valvidub T1E1,2025-03-09,2025-03-09,CC,Mariposa,50,8,41.36,41.36,32
+Ian,Recreativa,2025,Valvidub T1E1,2025-03-09,2025-03-09,CC,Libre,100,6,1.19.95,79.95,30
 Iker,Recreativa,2025,Valvidub T1E1,2025-03-09,2025-03-09,CC,Libre,25,9,22.87,22.87,22
 Iker,Recreativa,2025,Valvidub T1E1,2025-03-09,2025-03-09,CC,Dorso,25,9,27.87,27.87,22
 Iker,Recreativa,2025,Valvidub T1E1,2025-03-09,2025-03-09,CC,Pecho,25,8,31.22,31.22,18
@@ -91,21 +147,36 @@ Ian,Oficial,2025,Asturiano,2025-02-27,2025-02-29,CL,Libre,50,16,36.71,36.71,33
 Ian,Oficial,2025,Asturiano,2025-02-27,2025-02-29,CL,Dorso,50,17,46.66,46.66,28
 Ian,Oficial,2025,Asturiano,2025-02-27,2025-02-29,CL,Pecho,50,19,53.83,53.83,28
 Ian,Oficial,2025,Asturiano,2025-02-27,2025-02-29,CL,Mariposa,50,12,41.54,41.54,29
+Ian,Oficial,2025,Asturiano,2025-02-27,2025-02-29,CL,Libre,100,16,1.22.31,82.31,24
+Ian,Oficial,2025,Asturiano,2025-02-27,2025-02-29,CL,Dorso,100,16,1.38.80,98.8,26
+Ian,Oficial,2025,Asturiano,2025-02-27,2025-02-29,CL,Pecho,100,15,1.58.55,118.55,19
+Ian,Oficial,2025,Asturiano,2025-02-27,2025-02-29,CL,Mariposa,100,15,1.49.56,109.56,19
 Ian,Oficial,2025,Juegos CDMX,2025-02-22,2025-02-23,CL,Libre,50,27,36.72,36.72,38
 Ian,Oficial,2025,Juegos CDMX,2025-02-22,2025-02-23,CL,Dorso,50,31,48.85,48.85,38
 Ian,Oficial,2025,Juegos CDMX,2025-02-22,2025-02-23,CL,Pecho,50,34,53.91,53.91,37
 Ian,Oficial,2025,Juegos CDMX,2025-02-22,2025-02-23,CL,Mariposa,50,27,41.69,41.69,38
+Ian,Oficial,2025,Juegos CDMX,2025-02-22,2025-02-23,CL,Libre,100,28,1.19.21,79.21000000000001,37
+Ian,Oficial,2025,Juegos CDMX,2025-02-22,2025-02-23,CL,Dorso,100,28,1.40.08,100.08,34
+Ian,Oficial,2025,Juegos CDMX,2025-02-22,2025-02-23,CL,Pecho,100,27,1.57.24,117.24000000000001,32
+Ian,Oficial,2025,Juegos CDMX,2025-02-22,2025-02-23,CL,Mariposa,100,25,1.48.85,108.85,31
 Ian,Recreativa,2024,Valvidub T2E3,2024-12-01,2024-12-01,CC,Libre,50,17,35.97,35.97,48
 Ian,Recreativa,2024,Valvidub T2E3,2024-12-01,2024-12-01,CC,Pecho,50,14,55.7,55.7,36
 Ian,Recreativa,2024,Valvidub T2E3,2024-12-01,2024-12-01,CC,Mariposa,50,9,43.35,43.35,34
+Ian,Recreativa,2024,Valvidub T2E3,2024-12-01,2024-12-01,CC,Libre,100,13,1.22.4,82.4,27
 Ian,Oficial,2024,2do Torneo Zona A,2024-11-16,2024-11-17,CC,Libre,50,8,36.73,36.73,25
 Ian,Oficial,2024,2do Torneo Zona A,2024-11-16,2024-11-17,CC,Dorso,50,15,47.81,47.81,26
 Ian,Oficial,2024,2do Torneo Zona A,2024-11-16,2024-11-17,CC,Pecho,50,13,54.96,54.96,23
 Ian,Oficial,2024,2do Torneo Zona A,2024-11-16,2024-11-17,CC,Mariposa,50,9,44.75,44.75,22
 Ian,Oficial,2024,2do Torneo Zona A,2024-11-16,2024-11-17,CC,Libre,100,10,1:22.58,82.58,24
+Ian,Oficial,2024,2do Torneo Zona A,2024-11-16,2024-11-17,CC,Dorso,100,9,1.37.76,97.75999999999999,20
+Ian,Oficial,2024,2do Torneo Zona A,2024-11-16,2024-11-17,CC,Pecho,100,13,2.03.43,123.43,15
 Ian,Oficial,2024,2do Torneo Zona A,2024-11-16,2024-11-17,CC,Cobinado,100,10,1:39.27,99.27000000000001,16
 Ian,Oficial,2024,54 Festival Acuario,2024-11-01,2024-11-03,CC,Libre,50,41,35.89,35.89,66
 Ian,Oficial,2024,54 Festival Acuario,2024-11-01,2024-11-03,CC,Mariposa,50,40,43.98,43.98,47
+Ian,Oficial,2024,54 Festival Acuario,2024-11-01,2024-11-03,CC,Libre,100,45,1.20.37,80.37,65
+Ian,Oficial,2024,54 Festival Acuario,2024-11-01,2024-11-03,CC,Libre,200,41,2.55.45,175.45,52
+Ian,Oficial,2024,54 Festival Acuario,2024-11-01,2024-11-03,CC,Cobinado,100,25,1.35.07,95.07,31
+Ian,Oficial,2024,54 Festival Acuario,2024-11-01,2024-11-03,CC,Cobinado,200,26,3.23.67,203.67000000000002,29
 Ian,Oficial,2024,Racers,2024-11-01,2024-11-03,CC,Libre,50,2,35.97,35.97,2
 Ian,Oficial,2024,Racers,2024-11-01,2024-11-03,CC,Dorso,50,2,45.98,45.98,2
 Ian,Oficial,2024,Racers,2024-11-01,2024-11-03,CC,Pecho,50,2,51.71,51.71,2
@@ -117,6 +188,7 @@ Iker,Recreativa,2024,Valvidub T2E3,2024-11-01,2024-11-01,CC,Mariposa,25,15,33.4,
 Ian,Recreativa,2024,Valvidub T2E2,2024-10-27,2024-10-27,CC,Libre,50,3,35.66,35.66,36
 Ian,Recreativa,2024,Valvidub T2E2,2024-10-27,2024-10-27,CC,Dorso,50,4,46.37,46.37,34
 Ian,Recreativa,2024,Valvidub T2E2,2024-10-27,2024-10-27,CC,Mariposa,50,4,45.08,45.08,26
+Ian,Recreativa,2024,Valvidub T2E2,2024-10-27,2024-10-27,CC,Libre,100,3,1.21.72,81.72,23
 Ian,Oficial,2024,1er Torneo Zona B,2024-10-19,2024-10-19,CC,Dorso,50,16,52.75,52.75,26
 Ian,Oficial,2024,1er Torneo Zona B,2024-10-19,2024-10-19,CC,Pecho,50,,57.23,57.23,
 Ian,Oficial,2024,1er Torneo Zona B,2024-10-19,2024-10-19,CC,Libre,100,12,1:32.32,92.32,28
@@ -130,6 +202,7 @@ Iker,Recreativa,2024,Valvidub T2E2,2024-10-01,2024-10-01,CC,Mariposa,25,11,33.3,
 Ian,Recreativa,2024,Valvidub T2E1,2024-09-22,2024-09-22,CC,Libre,50,3,36.44,36.44,30
 Ian,Recreativa,2024,Valvidub T2E1,2024-09-22,2024-09-22,CC,Dorso,50,4,47.62,47.62,32
 Ian,Recreativa,2024,Valvidub T2E1,2024-09-22,2024-09-22,CC,Mariposa,50,3,42.4,42.4,17
+Ian,Recreativa,2024,Valvidub T2E1,2024-09-22,2024-09-22,CC,Libre,100,2,1.19.31,79.31,19
 Iker,Recreativa,2024,Valvidub T2E1,2024-09-01,2024-09-01,CC,Libre,25,9,22.61,22.61,24
 Iker,Recreativa,2024,Valvidub T2E1,2024-09-01,2024-09-01,CC,Dorso,25,9,28.11,28.11,26
 Iker,Recreativa,2024,Valvidub T2E1,2024-09-01,2024-09-01,CC,Pecho,25,10,33.05,33.05,22
@@ -145,6 +218,7 @@ Iker,Recreativa,2024,Valvidub T1E3,2024-06-01,2024-06-01,CC,Mariposa,25,13,36.08
 Ian,Recreativa,2024,Las Estacas,2024-05-25,2024-05-25,AA,Libre Contra Corriente,1000,1,20.07,20.07,4
 Ian,Recreativa,2024,Valvidub T1E2,2024-05-05,2024-05-05,CC,Libre,50,10,39.05,39.05,42
 Ian,Recreativa,2024,Valvidub T1E2,2024-05-05,2024-05-05,CC,Dorso,50,7,51.62,51.62,34
+Ian,Recreativa,2024,Valvidub T1E2,2024-05-05,2024-05-05,CC,Pecho,50,9,1.00.26,60.26,32
 Ian,Recreativa,2024,Valvidub T1E2,2024-05-05,2024-05-05,CC,Mariposa,50,9,49.68,49.68,23
 Iker,Recreativa,2024,Valvidub T1E2,2024-05-01,2024-05-01,CC,Libre,25,2,25.26,25.26,8
 Iker,Recreativa,2024,Valvidub T1E2,2024-05-01,2024-05-01,CC,Dorso,25,1,28.37,28.37,8
@@ -152,6 +226,7 @@ Iker,Recreativa,2024,Valvidub T1E2,2024-05-01,2024-05-01,CC,Patada Crol,25,5,34.
 Iker,Recreativa,2024,Valvidub T1E2,2024-05-01,2024-05-01,CC,Patada Dorso,25,3,42.1,42.1,8
 Ian,Recreativa,2024,Fabrica del Deporte,2024-04-29,2024-04-29,CC,Libre,50,2,39.63,39.63,7
 Ian,Recreativa,2024,Fabrica del Deporte,2024-04-29,2024-04-29,CC,Dorso,50,2,54.66,54.66,7
+Ian,Recreativa,2024,Fabrica del Deporte,2024-04-29,2024-04-29,CC,Pecho,50,2,1.02.11,62.11,7
 Ian,Recreativa,2024,Valvidub T1E1,2024-03-10,2024-03-10,CC,Libre,50,7,39.84,39.84,36
 Ian,Recreativa,2024,Valvidub T1E1,2024-03-10,2024-03-10,CC,Dorso,50,3,52.6,52.6,33
 Ian,Recreativa,2024,Valvidub T1E1,2024-03-10,2024-03-10,CC,Pecho,50,7,59.89,59.89,34
@@ -164,14 +239,24 @@ Ian,Oficial,2024,1er Torneo Zona A,2024-02-01,2024-02-01,CC,Libre,50,4,35.48,35.
 Ian,Oficial,2024,1er Torneo Zona A,2024-02-01,2024-02-01,CC,Dorso,50,8,46.36,46.36,36
 Ian,Oficial,2024,1er Torneo Zona A,2024-02-01,2024-02-01,CC,Pecho,50,11,55.18,55.18,31
 Ian,Oficial,2024,1er Torneo Zona A,2024-02-01,2024-02-01,CC,Mariposa,50,5,43.7,43.7,34
+Ian,Oficial,2024,1er Torneo Zona A,2024-02-01,2024-02-01,CC,Libre,100,2,1.19.51,79.51,35
+Ian,Oficial,2024,1er Torneo Zona A,2024-02-01,2024-02-01,CC,Dorso,100,7,1.38.31,98.31,31
+Ian,Oficial,2024,1er Torneo Zona A,2024-02-01,2024-02-01,CC,Pecho,100,5,1.53.79,113.78999999999999,25
+Ian,Oficial,2024,1er Torneo Zona A,2024-02-01,2024-02-01,CC,Mariposa,100,3,1.42.61,102.61,8
 Ian,Oficial,2024,2do Torneo Zona B,2024-02-01,2024-02-01,CL,Libre,50,7,41.55,41.55,20
 Ian,Oficial,2024,2do Torneo Zona B,2024-02-01,2024-02-01,CL,Dorso,50,16,54.13,54.13,20
 Ian,Oficial,2024,2do Torneo Zona B,2024-02-01,2024-02-01,CL,Pecho,50,5,59.75,59.75,17
 Ian,Oficial,2024,2do Torneo Zona B,2024-02-01,2024-02-01,CL,Mariposa,50,2,48.35,48.35,21
 Ian,Oficial,2024,2do Torneo Zona B,2024-02-01,2024-02-01,CL,Libre,100,6,1:29.89,89.89,21
+Ian,Oficial,2024,2do Torneo Zona B,2024-02-01,2024-02-01,CL,Dorso,100,12,1.51.06,111.06,20
+Ian,Oficial,2024,2do Torneo Zona B,2024-02-01,2024-02-01,CL,Pecho,100,4,2.06.85,126.85,12
 Ian,Oficial,2024,3er Torneo Infantil A/B,2024-02-01,2024-02-01,CL,Libre,50,7,40.01,40.01,30
 Ian,Oficial,2024,3er Torneo Infantil A/B,2024-02-01,2024-02-01,CL,Dorso,50,15,51.51,51.51,30
+Ian,Oficial,2024,3er Torneo Infantil A/B,2024-02-01,2024-02-01,CL,Pecho,50,21,1.02.67,62.67,28
 Ian,Oficial,2024,3er Torneo Infantil A/B,2024-02-01,2024-02-01,CL,Mariposa,50,13,52.21,52.21,29
+Ian,Oficial,2024,3er Torneo Infantil A/B,2024-02-01,2024-02-01,CL,Libre,100,4,1.24.28,84.28,32
+Ian,Oficial,2024,3er Torneo Infantil A/B,2024-02-01,2024-02-01,CL,Dorso,100,12,1.45.86,105.86,26
+Ian,Oficial,2024,3er Torneo Infantil A/B,2024-02-01,2024-02-01,CL,Pecho,100,16,2.17.93,137.93,20
 Ian,Oficial,2024,Asturiano (Eliminatorias),2024-02-01,2024-02-01,CL,Libre,50,8,39.72,39.72,19
 Ian,Oficial,2024,Asturiano (Eliminatorias),2024-02-01,2024-02-01,CL,Dorso,50,12,51.15,51.15,19
 Ian,Oficial,2024,Asturiano (Eliminatorias),2024-02-01,2024-02-01,CL,Pecho,50,9,59.26,59.26,16
@@ -180,6 +265,7 @@ Ian,Oficial,2024,Asturiano (Finales),2024-02-01,2024-02-01,CL,Libre,50,8,39.24,3
 Ian,Oficial,2024,Asturiano (Finales),2024-02-01,2024-02-01,CL,Mariposa,50,8,48.16,48.16,8
 Ian,Oficial,2024,Campeonato CDMX,2024-02-01,2024-02-01,CL,Libre,50,6,37.45,37.45,16
 Ian,Oficial,2024,Campeonato CDMX,2024-02-01,2024-02-01,CL,Mariposa,50,13,45.52,45.52,16
+Ian,Oficial,2024,Campeonato CDMX,2024-02-01,2024-02-01,CL,Libre,100,3,1.19.58,79.58,16
 Iker,Recreativa,2023,Valvidub T2E3,2023-11-01,2023-11-01,CC,Libre,25,2,29.66,29.66,4
 Iker,Recreativa,2023,Valvidub T2E3,2023-11-01,2023-11-01,CC,Dorso,25,2,32.39,32.39,3
 Iker,Recreativa,2023,Valvidub T2E3,2023-11-01,2023-11-01,CC,Patada Crol,25,2,38.23,38.23,3

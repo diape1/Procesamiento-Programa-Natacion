@@ -2,6 +2,7 @@ import streamlit as st
 import tempfile
 import os
 import pandas as pd
+import altair as alt
 import unicodedata
 from datetime import datetime, time
 
@@ -72,10 +73,9 @@ with tab_evento:
                 finally:
                     if 'tmp_path' in locals() and os.path.exists(tmp_path): os.remove(tmp_path)
 
-# ----------------- TAB 2: CAMPEONATO NACIONAL -----------------
+# ----------------- TAB 5: CAMPEONATO NACIONAL -----------------
 with tab_tope:
     st.write("Consulta la tabla de Tiempos Tope para el Campeonato Nacional.")
-    st.info("Para actualizar esta tabla, simplemente sube o reemplaza el archivo \	iempos_tope.csv\ en tu repositorio de GitHub.")
     
     if os.path.exists("tiempos_tope.csv"):
         df_tope = pd.read_csv("tiempos_tope.csv")
@@ -129,7 +129,8 @@ with tab_ranking:
             if len(filtered_rank) > 0:
                 # Mostrar todos los nombres encontrados
                 nombres_encontrados = list(filtered_rank['Nombre'].unique())
-                st.success(f"Resultados para: **{', '.join(nombres_encontrados)}**")
+                msg = "Resultados para:\\n" + "\\n".join([f"- **{n}**" for n in nombres_encontrados])
+                st.success(msg)
                 
                 # Filtros adicionales
                 fechas_unicas = list(filtered_rank["Fecha_Ranking"].dropna().unique())
@@ -158,14 +159,27 @@ with tab_ranking:
                 })
                 
                 # Seleccionar y ordenar columnas (agregando Nombre al inicio)
-                columnas_deseadas = ['Nombre', 'Ranking', 'Distancia', 'Estilo', 'Posición', 'Tiempo', 'Edad', 'Fecha', 'Lugar']
+                columnas_deseadas = ['Ranking', 'Distancia', 'Estilo', 'Posición', 'Tiempo', 'Edad', 'Nombre', 'Fecha', 'Lugar']
                 columnas_finales = [col for col in columnas_deseadas if col in filtered_display.columns]
                 filtered_display = filtered_display[columnas_finales]
                 
                 # Ordenar por Nombre (para hacer bloques) y luego por fecha (Ranking) si es posible
-                filtered_display = filtered_display.sort_values(by=['Nombre', 'Ranking'], ascending=[True, False])
+                if 'Nombre' in filtered_display.columns:
+                    filtered_display = filtered_display.sort_values(by=['Nombre', 'Ranking'], ascending=[True, False])
                 
-                st.dataframe(filtered_display, use_container_width=True, hide_index=True)
+                def color_rows(row):
+                    try:
+                        if 'Nombre' in row:
+                            idx = nombres_encontrados.index(row['Nombre'])
+                            if idx % 2 == 0:
+                                return ['background-color: rgba(60, 60, 60, 0.2)'] * len(row)
+                            else:
+                                return ['background-color: rgba(120, 120, 120, 0.2)'] * len(row)
+                        return [''] * len(row)
+                    except:
+                        return [''] * len(row)
+                        
+                st.dataframe(filtered_display.style.apply(color_rows, axis=1), use_container_width=True, hide_index=True)
             else:
                 st.warning(f"No se encontró a nadie llamado '{search_name}'. Verifica la ortografía.")
     else:
@@ -230,11 +244,29 @@ with tab_analitica:
             # Ordenar cronológicamente
             an_filtered = an_filtered.sort_values(by="Fecha Inicio", ascending=True)
             
-            # Formatear el DataFrame para el line_chart
-            # Necesitamos que el índice sea la Fecha Inicio y que cada columna sea un nadador
-            chart_df = an_filtered.pivot_table(index="Fecha Inicio", columns="Nombre", values="Segundos", aggfunc="min")
+            # Formatear el DataFrame para usar Altair y mostrar tooltip con Evento y Fecha (dd mmm aaaa)
+            # Primero convertir a datetime
+            an_filtered["Fecha_Obj"] = pd.to_datetime(an_filtered["Fecha Inicio"])
+            # Diccionario de meses en español para manual formatting
+            meses = {1:'Ene', 2:'Feb', 3:'Mar', 4:'Abr', 5:'May', 6:'Jun', 7:'Jul', 8:'Ago', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dic'}
+            an_filtered["Fecha Fmt"] = an_filtered["Fecha_Obj"].apply(lambda x: f"{x.day:02d} {meses.get(x.month, '')} {x.year}")
             
-            st.line_chart(chart_df, use_container_width=True)
+            # Tomar el mejor tiempo si un nadador tiene múltiples hits en el mismo evento (para evitar líneas duplicadas confusas)
+            an_filtered = an_filtered.loc[an_filtered.groupby(["Nombre", "Fecha Inicio"])["Segundos"].idxmin()]
+            
+            chart = alt.Chart(an_filtered).mark_line(point=True).encode(
+                x=alt.X('Fecha Inicio:T', title='Fecha'),
+                y=alt.Y('Segundos:Q', title='Segundos', scale=alt.Scale(zero=False)),
+                color='Nombre:N',
+                tooltip=[
+                    alt.Tooltip('Nombre:N', title='Nadador'),
+                    alt.Tooltip('Fecha Fmt:N', title='Fecha'),
+                    alt.Tooltip('Evento:N', title='Evento'),
+                    alt.Tooltip('Tiempo:N', title='Tiempo')
+                ]
+            ).interactive()
+            
+            st.altair_chart(chart, use_container_width=True)
             st.caption("Eje X: Fecha de Competencia | Eje Y: Tiempo (Segundos). Un tiempo menor es mejor.")
             
             st.markdown("### Estadísticas")
@@ -279,8 +311,11 @@ with tab_registro:
             st.subheader("Datos de la Competencia")
             c1, c2, c3, c4 = st.columns(4)
             with c1:
-                sel_evento = st.selectbox("Evento", cat_eventos + ["➕ Agregar Nuevo Evento"])
-                nuevo_evento = st.text_input("Nombre del Nuevo Evento (Si elegiste Agregar Nuevo)")
+                sel_evento = st.selectbox("Evento", ["➕ Agregar Nuevo Evento"] + cat_eventos)
+                if sel_evento == "➕ Agregar Nuevo Evento":
+                    nuevo_evento = st.text_input("Nombre del Nuevo Evento")
+                else:
+                    nuevo_evento = sel_evento
             with c2:
                 fecha_inicio = st.date_input("Fecha de Inicio")
             with c3:
@@ -294,11 +329,17 @@ with tab_registro:
                 nadador = st.selectbox("Nadador", ["Ian", "Iker"])
                 curso = st.selectbox("Curso", ["CC", "CL", "AA"])
             with c6:
-                sel_estilo = st.selectbox("Estilo", cat_estilos + ["➕ Agregar Nuevo Estilo"])
-                nuevo_estilo = st.text_input("Nombre del Nuevo Estilo (ej. Libre)")
+                sel_estilo = st.selectbox("Estilo", ["➕ Agregar Nuevo Estilo"] + cat_estilos)
+                if sel_estilo == "➕ Agregar Nuevo Estilo":
+                    nuevo_estilo = st.text_input("Nombre del Nuevo Estilo (ej. Libre)")
+                else:
+                    nuevo_estilo = sel_estilo
             with c7:
-                sel_distancia = st.selectbox("Distancia", cat_distancias + ["➕ Agregar Nueva Distancia"])
-                nueva_distancia = st.text_input("Nueva Distancia (ej. 200)")
+                sel_distancia = st.selectbox("Distancia", ["➕ Agregar Nueva Distancia"] + cat_distancias)
+                if sel_distancia == "➕ Agregar Nueva Distancia":
+                    nueva_distancia = st.text_input("Nueva Distancia (ej. 200)")
+                else:
+                    nueva_distancia = sel_distancia
             with c8:
                 tiempo_str = st.text_input("Tiempo (ej. 45.23 o 1:05.40)")
                 posicion = st.number_input("Posición", min_value=1, step=1)

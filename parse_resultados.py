@@ -16,6 +16,9 @@ def parse_time_to_seconds(time_str):
         if ':' in time_str:
             parts = time_str.split(':')
             return int(parts[0]) * 60 + float(parts[1])
+        elif time_str.count('.') == 2:
+            parts = time_str.split('.')
+            return int(parts[0]) * 60 + float(f"{parts[1]}.{parts[2]}")
         else:
             return float(time_str)
     except:
