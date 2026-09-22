@@ -167,77 +167,142 @@ with tab_ranking:
             
         df_rank['Posicion'] = df_rank.apply(format_pos, axis=1)
         
-        c1, c2 = st.columns([2, 1])
-        with c1:
-            search_name = st.text_input("Nombre del Nadador (búsqueda inteligente)")
-        
-        if search_name:
-            search_norm = remove_accents(search_name).lower()
-            df_rank['Nombre_Norm'] = df_rank['Nombre'].apply(remove_accents).str.lower()
+        tipo_vista = st.radio("Modo de visualización", ["Búsqueda por Nadador", "Explorar por Categoría (Ranking Completo)"], horizontal=True)
+        st.write("---")
+        if tipo_vista == "Búsqueda por Nadador":
+            c1, c2 = st.columns([2, 1])
+            with c1:
+                search_name = st.text_input("Nombre del Nadador (búsqueda inteligente)")
             
-            # Filtro inicial por nombre
-            filtered_rank = df_rank[df_rank['Nombre_Norm'].str.contains(search_norm, na=False)].copy()
-            filtered_rank = filtered_rank.drop(columns=['Nombre_Norm'])
+            if search_name:
+                search_norm = remove_accents(search_name).lower()
+                df_rank['Nombre_Norm'] = df_rank['Nombre'].apply(remove_accents).str.lower()
+                
+                # Filtro inicial por nombre
+                filtered_rank = df_rank[df_rank['Nombre_Norm'].str.contains(search_norm, na=False)].copy()
+                filtered_rank = filtered_rank.drop(columns=['Nombre_Norm'])
+                
+                if len(filtered_rank) > 0:
+                    # Mostrar todos los nombres encontrados
+                    nombres_encontrados = list(filtered_rank['Nombre'].unique())
+                    nombres_bullets = "\n".join([f"- **{n}**" for n in nombres_encontrados])
+                    st.success(f"Resultados para:\n\n{nombres_bullets}")
+                    
+                    # Filtros adicionales
+                    fechas_unicas = list(filtered_rank["Fecha_Ranking"].dropna().unique())
+                    try:
+                        fechas_unicas.sort(key=lambda d: datetime.strptime(d, "%d/%m/%Y"), reverse=True)
+                    except:
+                        fechas_unicas.sort(reverse=True)
+                    
+                    opciones_fecha = fechas_unicas + ["Todas"]
+                    
+                    f1, f2, f3 = st.columns(3)
+                    with f1: filter_fecha = st.selectbox("Ranking", opciones_fecha)
+                    with f2: filter_estilo = st.selectbox("Filtrar Estilo", ["Todos"] + list(filtered_rank["Estilo"].dropna().unique()))
+                    with f3: filter_dist = st.selectbox("Filtrar Distancia", ["Todas"] + list(filtered_rank["Distancia"].astype(str).dropna().unique()))
+                    
+                    # Aplicar filtros adicionales
+                    if filter_fecha != "Todas": filtered_rank = filtered_rank[filtered_rank["Fecha_Ranking"] == filter_fecha]
+                    if filter_estilo != "Todos": filtered_rank = filtered_rank[filtered_rank["Estilo"] == filter_estilo]
+                    if filter_dist != "Todas": filtered_rank = filtered_rank[filtered_rank["Distancia"].astype(str) == filter_dist]
+                    
+                    # Renombrar columnas
+                    filtered_display = filtered_rank.rename(columns={
+                        "Fecha_Ranking": "Ranking",
+                        "Fecha_Logro": "Fecha",
+                        "Posicion": "Posición"
+                    })
+                    
+                    # Seleccionar y ordenar columnas (agregando Nombre al inicio)
+                    columnas_deseadas = ['Ranking', 'Distancia', 'Estilo', 'Posición', 'Tiempo', 'Edad', 'Nombre', 'Fecha', 'Lugar']
+                    columnas_finales = [col for col in columnas_deseadas if col in filtered_display.columns]
+                    filtered_display = filtered_display[columnas_finales]
+                    
+                    # Ordenar por Nombre (para hacer bloques) y luego por fecha (Ranking) si es posible
+                    if 'Nombre' in filtered_display.columns:
+                        filtered_display = filtered_display.sort_values(by=['Nombre', 'Ranking'], ascending=[True, False])
+                    
+                    def color_rows(row):
+                        try:
+                            if 'Nombre' in row:
+                                idx = nombres_encontrados.index(row['Nombre'])
+                                if idx % 2 == 0:
+                                    return ['background-color: rgba(41, 128, 185, 0.3)'] * len(row)  # Azul claro
+                                else:
+                                    return ['background-color: rgba(211, 84, 0, 0.3)'] * len(row)  # Naranja claro
+                            return [''] * len(row)
+                        except:
+                            return [''] * len(row)
+                            
+                    styled_df = filtered_display.style.apply(color_rows, axis=1)
+                    if 'Posición' in filtered_display.columns:
+                        styled_df = styled_df.set_properties(subset=['Posición'], **{'font-weight': 'bold', 'color': '#003366', 'background-color': '#e6f2ff'})
+                    st.dataframe(styled_df, use_container_width=True, hide_index=True)
+                else:
+                    st.warning(f"No se encontró a nadie llamado '{search_name}'. Verifica la ortografía.")
+        else:
+            st.write("Filtra paso a paso para ver la tabla completa del ranking en un evento específico.")
+            fechas_all = list(df_rank["Fecha_Ranking"].dropna().unique())
+            try:
+                from datetime import datetime
+                fechas_all.sort(key=lambda d: datetime.strptime(d, "%d/%m/%Y"), reverse=True)
+            except:
+                fechas_all.sort(reverse=True)
             
-            if len(filtered_rank) > 0:
-                # Mostrar todos los nombres encontrados
-                nombres_encontrados = list(filtered_rank['Nombre'].unique())
-                nombres_bullets = "\n".join([f"- **{n}**" for n in nombres_encontrados])
-                st.success(f"Resultados para:\n\n{nombres_bullets}")
+            c_f, c_r, c_c, c_e, c_d = st.columns(5)
+            
+            with c_f:
+                sel_fecha = st.selectbox("1. Fecha", ["-- Seleccionar --"] + fechas_all)
+            
+            df_tmp = df_rank[df_rank["Fecha_Ranking"] == sel_fecha] if sel_fecha != "-- Seleccionar --" else df_rank
+            ramas_all = list(df_tmp["Rama"].dropna().unique())
+            with c_r:
+                sel_rama = st.selectbox("2. Rama", ["-- Seleccionar --"] + ramas_all)
                 
-                # Filtros adicionales
-                fechas_unicas = list(filtered_rank["Fecha_Ranking"].dropna().unique())
-                try:
-                    fechas_unicas.sort(key=lambda d: datetime.strptime(d, "%d/%m/%Y"), reverse=True)
-                except:
-                    fechas_unicas.sort(reverse=True)
+            df_tmp = df_tmp[df_tmp["Rama"] == sel_rama] if sel_rama != "-- Seleccionar --" else df_tmp
+            cat_all = list(df_tmp["Categoria"].dropna().unique())
+            with c_c:
+                sel_cat = st.selectbox("3. Categoría", ["-- Seleccionar --"] + cat_all)
                 
-                opciones_fecha = fechas_unicas + ["Todas"]
+            df_tmp = df_tmp[df_tmp["Categoria"] == sel_cat] if sel_cat != "-- Seleccionar --" else df_tmp
+            est_all = list(df_tmp["Estilo"].dropna().unique())
+            with c_e:
+                sel_est = st.selectbox("4. Estilo", ["-- Seleccionar --"] + est_all)
                 
-                f1, f2, f3 = st.columns(3)
-                with f1: filter_fecha = st.selectbox("Ranking", opciones_fecha)
-                with f2: filter_estilo = st.selectbox("Filtrar Estilo", ["Todos"] + list(filtered_rank["Estilo"].dropna().unique()))
-                with f3: filter_dist = st.selectbox("Filtrar Distancia", ["Todas"] + list(filtered_rank["Distancia"].astype(str).dropna().unique()))
+            df_tmp = df_tmp[df_tmp["Estilo"] == sel_est] if sel_est != "-- Seleccionar --" else df_tmp
+            dist_all = list(df_tmp["Distancia"].astype(str).dropna().unique())
+            with c_d:
+                sel_dist = st.selectbox("5. Distancia", ["-- Seleccionar --"] + dist_all)
                 
-                # Aplicar filtros adicionales
-                if filter_fecha != "Todas": filtered_rank = filtered_rank[filtered_rank["Fecha_Ranking"] == filter_fecha]
-                if filter_estilo != "Todos": filtered_rank = filtered_rank[filtered_rank["Estilo"] == filter_estilo]
-                if filter_dist != "Todas": filtered_rank = filtered_rank[filtered_rank["Distancia"].astype(str) == filter_dist]
+            if "-- Seleccionar --" in [sel_fecha, sel_rama, sel_cat, sel_est, sel_dist]:
+                st.info("💡 Por favor selecciona todos los filtros arriba (Fecha, Rama, Categoría, Estilo y Distancia) para visualizar el ranking completo de esa categoría.")
+            else:
+                final_view = df_tmp[df_tmp["Distancia"].astype(str) == sel_dist].copy()
                 
-                # Renombrar columnas
-                filtered_display = filtered_rank.rename(columns={
+                final_view = final_view.rename(columns={
                     "Fecha_Ranking": "Ranking",
                     "Fecha_Logro": "Fecha",
                     "Posicion": "Posición"
                 })
                 
-                # Seleccionar y ordenar columnas (agregando Nombre al inicio)
-                columnas_deseadas = ['Ranking', 'Distancia', 'Estilo', 'Posición', 'Tiempo', 'Edad', 'Nombre', 'Fecha', 'Lugar']
-                columnas_finales = [col for col in columnas_deseadas if col in filtered_display.columns]
-                filtered_display = filtered_display[columnas_finales]
+                highlight = st.text_input("🔍 Resaltar nadador (escribe un nombre o apellido para encontrarlo rápido en la tabla)")
                 
-                # Ordenar por Nombre (para hacer bloques) y luego por fecha (Ranking) si es posible
-                if 'Nombre' in filtered_display.columns:
-                    filtered_display = filtered_display.sort_values(by=['Nombre', 'Ranking'], ascending=[True, False])
+                cols_des = ['Ranking', 'Distancia', 'Estilo', 'Posición', 'Tiempo', 'Edad', 'Nombre', 'Fecha', 'Lugar']
+                cols_fin = [col for col in cols_des if col in final_view.columns]
+                final_view = final_view[cols_fin]
                 
-                def color_rows(row):
-                    try:
-                        if 'Nombre' in row:
-                            idx = nombres_encontrados.index(row['Nombre'])
-                            if idx % 2 == 0:
-                                return ['background-color: rgba(41, 128, 185, 0.3)'] * len(row)  # Azul claro
-                            else:
-                                return ['background-color: rgba(211, 84, 0, 0.3)'] * len(row)  # Naranja claro
-                        return [''] * len(row)
-                    except:
-                        return [''] * len(row)
-                        
-                styled_df = filtered_display.style.apply(color_rows, axis=1)
-                if 'Posición' in filtered_display.columns:
-                    styled_df = styled_df.set_properties(subset=['Posición'], **{'font-weight': 'bold', 'color': '#003366', 'background-color': '#e6f2ff'})
-                st.dataframe(styled_df, use_container_width=True, hide_index=True)
-            else:
-                st.warning(f"No se encontró a nadie llamado '{search_name}'. Verifica la ortografía.")
+                def color_rows_full(row):
+                    if highlight and highlight.lower() in str(row.get('Nombre', '')).lower():
+                        return ['background-color: rgba(46, 204, 113, 0.4)'] * len(row)
+                    return [''] * len(row)
+                    
+                styled_df2 = final_view.style.apply(color_rows_full, axis=1)
+                if 'Posición' in final_view.columns:
+                    styled_df2 = styled_df2.set_properties(subset=['Posición'], **{'font-weight': 'bold', 'color': '#003366', 'background-color': '#e6f2ff'})
+                
+                st.write(f"**Resultados encontrados:** {len(final_view)} nadadores")
+                st.dataframe(styled_df2, use_container_width=True, hide_index=True)
     else:
         st.warning("No hay base de datos de ranking. Se agregará próximamente.")
 
