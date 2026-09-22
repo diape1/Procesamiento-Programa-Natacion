@@ -18,6 +18,29 @@ def remove_accents(input_str):
 st.set_page_config(page_title="Gestor de Natación", layout="wide")
 st.title("Gestor Integral de Natación")
 
+with st.sidebar:
+    with st.expander("ℹ️ Ayuda / Mantenimiento"):
+        st.markdown('''
+        **¿Cómo actualizar la base de datos?**
+        
+        **1. Historial de Resultados (Tab 2, 4 y 6)**
+        * El archivo maestro es `Tiempos Natación.xlsx`.
+        * Si agregas tiempos manualmente en Excel, abre una terminal en esta carpeta y ejecuta:
+          `python parse_resultados.py`
+        * Esto actualizará el archivo `resultados_historicos.csv`.
+        * *Nota: Si usas la Tab 6 (Registrar Resultado), asegúrate de descargar el CSV actualizado y reemplazar `resultados_historicos.csv`.*
+        
+        **2. Ranking CDMX (Tab 3)**
+        * Pon los nuevos PDFs de ranking en la carpeta.
+        * Ejecuta `python ranking_parser.py` para extraerlos y actualizar `ranking_historico.csv`.
+        
+        **3. Campeonato Nacional (Tab 5)**
+        * Para actualizar los Tiempos Tope, simplemente edita o reemplaza el archivo `tiempos_tope.csv` respetando el formato de columnas.
+        
+        **4. Subir a la Nube (GitHub)**
+        * Después de realizar cualquier cambio local (ej. reemplazar CSVs), siempre debes hacer `git add .`, `git commit -m "Actualización"` y `git push` para que los cambios se reflejen en Streamlit.
+        ''')
+
 tab_evento, tab_resultados, tab_analitica, tab_registro, tab_ranking, tab_tope = st.tabs([
     "🏊 Programa de Competencia", 
     "🏅 Resultados Personales", 
