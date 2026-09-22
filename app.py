@@ -205,9 +205,9 @@ with tab_ranking:
                         if 'Nombre' in row:
                             idx = nombres_encontrados.index(row['Nombre'])
                             if idx % 2 == 0:
-                                return ['background-color: rgba(60, 60, 60, 0.2)'] * len(row)
+                                return ['background-color: rgba(41, 128, 185, 0.3)'] * len(row)  # Azul claro
                             else:
-                                return ['background-color: rgba(120, 120, 120, 0.2)'] * len(row)
+                                return ['background-color: rgba(211, 84, 0, 0.3)'] * len(row)  # Naranja claro
                         return [''] * len(row)
                     except:
                         return [''] * len(row)
@@ -268,7 +268,20 @@ with tab_resultados:
         # Ordenar tabla por Fecha Inicio (más reciente primero), luego Evento y Nombre
         filtered_res = filtered_res.sort_values(by=["Fecha Inicio", "Evento", "Nombre"], ascending=[False, True, True])
         
-        st.dataframe(filtered_res[cols_final], use_container_width=True, hide_index=True)
+        nombres_historico = list(filtered_res["Nombre"].dropna().unique())
+        def color_rows_historico(row):
+            try:
+                if 'Nombre' in row:
+                    idx = nombres_historico.index(row['Nombre'])
+                    if idx % 2 == 0:
+                        return ['background-color: rgba(41, 128, 185, 0.3)'] * len(row)
+                    else:
+                        return ['background-color: rgba(211, 84, 0, 0.3)'] * len(row)
+                return [''] * len(row)
+            except:
+                return [''] * len(row)
+        
+        st.dataframe(filtered_res[cols_final].style.apply(color_rows_historico, axis=1), use_container_width=True, hide_index=True)
     else:
         st.warning("No se encontró el archivo resultados_historicos.csv. Asegúrate de ejecutar el script de procesamiento primero.")
 
