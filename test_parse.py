@@ -48,5 +48,12 @@ class TestParseResultados(unittest.TestCase):
                 # Just check format roughly
                 self.assertTrue(len(str(val)) == 10, f"Date format mismatch: {val}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
+
+def test_time_parser():
+    import parse_resultados
+    assert parse_resultados.parse_time_to_seconds("1.15.20") == 75.2
+    assert parse_resultados.parse_time_to_seconds("45.20") == 45.2
+    assert parse_resultados.parse_time_to_seconds("1:05.40") == 65.4

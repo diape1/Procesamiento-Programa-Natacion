@@ -1,10 +1,22 @@
 import pandas as pd
+import warnings
 import re
-import math
 import datetime
+import shutil
+
+warnings.filterwarnings('ignore')
 
 file_path = "Tiempos Natación.xlsx"
-xls = pd.ExcelFile(file_path)
+tmp_path = "Tiempos_tmp_auto.xlsx"
+try:
+    xls = pd.ExcelFile(file_path)
+    using_tmp = False
+except PermissionError:
+    print(f"[{file_path}] abierto en otro lado. Usando copia temporal...")
+    import subprocess
+    subprocess.run(["powershell", "-Command", f"Copy-Item '{file_path}' '{tmp_path}'"], check=False)
+    xls = pd.ExcelFile(tmp_path)
+    using_tmp = True
 
 all_results = []
 
@@ -52,7 +64,7 @@ for sheet_name in xls.sheet_names:
 
     print(f"Processing sheet: '{sheet}'")
 
-    df = pd.read_excel(file_path, sheet_name=sheet_name, header=None)
+    df = pd.read_excel(xls, sheet_name=sheet_name, header=None)
     
     if len(df) < 3:
         continue
@@ -249,3 +261,10 @@ df_res = df_res.sort_values(by=["Fecha Inicio", "Evento", "Nombre"], ascending=[
 df_res.to_csv("resultados_historicos.csv", index=False, encoding="utf-8-sig")
 print("Saved to resultados_historicos.csv")
 print(f"Total rows: {len(df_res)}")
+
+if using_tmp:
+    import os
+    try:
+        os.remove(tmp_path)
+    except:
+        pass
