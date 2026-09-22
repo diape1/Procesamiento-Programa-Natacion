@@ -152,9 +152,20 @@ with tab_ranking:
         total_counts = df_rank.groupby(['Fecha_Ranking', 'Rama', 'Categoria', 'Distancia', 'Estilo']).size().reset_index(name='Total')
         df_rank = pd.merge(df_rank, total_counts, on=['Fecha_Ranking', 'Rama', 'Categoria', 'Distancia', 'Estilo'], how='left')
         
-        # Formatear la columna Posicion como X/Y
-        pos_str = pd.to_numeric(df_rank['Posicion'], errors='coerce').fillna(-1).astype(int).astype(str).replace('-1', '-')
-        df_rank['Posicion'] = pos_str + "/" + df_rank['Total'].astype(str)
+        # Formatear la columna Posicion como X / Y con medallas
+        def format_pos(row):
+            try:
+                p = int(float(row['Posicion']))
+            except:
+                p = -1
+            tot = row['Total']
+            if p == 1: return f"🥇 1 / {tot}"
+            if p == 2: return f"🥈 2 / {tot}"
+            if p == 3: return f"🥉 3 / {tot}"
+            if p > 0: return f"🔸 {p} / {tot}"
+            return f"- / {tot}"
+            
+        df_rank['Posicion'] = df_rank.apply(format_pos, axis=1)
         
         c1, c2 = st.columns([2, 1])
         with c1:
@@ -221,7 +232,10 @@ with tab_ranking:
                     except:
                         return [''] * len(row)
                         
-                st.dataframe(filtered_display.style.apply(color_rows, axis=1), use_container_width=True, hide_index=True)
+                styled_df = filtered_display.style.apply(color_rows, axis=1)
+                if 'Posición' in filtered_display.columns:
+                    styled_df = styled_df.set_properties(subset=['Posición'], **{'font-weight': 'bold', 'color': '#003366', 'background-color': '#e6f2ff'})
+                st.dataframe(styled_df, use_container_width=True, hide_index=True)
             else:
                 st.warning(f"No se encontró a nadie llamado '{search_name}'. Verifica la ortografía.")
     else:
