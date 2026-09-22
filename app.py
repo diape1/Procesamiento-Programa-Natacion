@@ -3,6 +3,14 @@ import tempfile
 import os
 import pandas as pd
 import altair as alt
+
+def format_time_str(t_str):
+    if not isinstance(t_str, str): return t_str
+    t = t_str.strip()
+    if t.count(".") == 2:
+        t = t.replace(".", ":", 1)
+    return t
+
 import unicodedata
 from datetime import datetime, time
 
@@ -138,6 +146,7 @@ with tab_ranking:
     
     if os.path.exists("ranking_historico.csv"):
         df_rank = pd.read_csv("ranking_historico.csv").dropna(subset=['Nombre'])
+        df_rank["Tiempo"] = df_rank["Tiempo"].astype(str).apply(format_time_str)
         
         # Calcular el total de participantes por ranking, rama, categoría, distancia y estilo
         total_counts = df_rank.groupby(['Fecha_Ranking', 'Rama', 'Categoria', 'Distancia', 'Estilo']).size().reset_index(name='Total')
@@ -229,6 +238,7 @@ with tab_resultados:
     
     if os.path.exists("resultados_historicos.csv"):
         df_res = pd.read_csv("resultados_historicos.csv")
+        df_res["Tiempo"] = df_res["Tiempo"].astype(str).apply(format_time_str)
         
         # Filtros
         c1, c2, c3, c4, c5 = st.columns(5)
@@ -291,6 +301,7 @@ with tab_analitica:
     st.write("Analiza el progreso y evolución de los tiempos.")
     if os.path.exists("resultados_historicos.csv"):
         df_an = pd.read_csv("resultados_historicos.csv").dropna(subset=["Segundos", "Fecha Inicio"])
+        df_an["Tiempo"] = df_an["Tiempo"].astype(str).apply(format_time_str)
         
         col1, col2, col3 = st.columns(3)
         with col1: 
@@ -413,7 +424,7 @@ with tab_registro:
             with c1:
                 sel_evento = st.selectbox("Evento", ["-- Seleccionar --", "➕ Agregar"] + cat_eventos)
                 if sel_evento == "➕ Agregar":
-                    nuevo_evento = st.text_input("Nuevo evento")
+                    nuevo_evento = st.text_input("Nuevo Evento")
                 else:
                     nuevo_evento = sel_evento if sel_evento != "-- Seleccionar --" else ""
             with c2:
@@ -431,17 +442,17 @@ with tab_registro:
             with c6:
                 sel_estilo = st.selectbox("Estilo", ["-- Seleccionar --", "➕ Agregar"] + cat_estilos)
                 if sel_estilo == "➕ Agregar":
-                    nuevo_estilo = st.text_input("Nuevo estilo")
+                    nuevo_estilo = st.text_input("Nuevo Estilo")
                 else:
                     nuevo_estilo = sel_estilo if sel_estilo != "-- Seleccionar --" else ""
             with c7:
                 sel_distancia = st.selectbox("Distancia", ["-- Seleccionar --", "➕ Agregar"] + cat_distancias)
                 if sel_distancia == "➕ Agregar":
-                    nueva_distancia = st.text_input("Nueva distancia")
+                    nueva_distancia = st.text_input("Nueva Distancia")
                 else:
                     nueva_distancia = sel_distancia if sel_distancia != "-- Seleccionar --" else ""
             with c8:
-                tiempo_str = st.text_input("Tiempo (ej. 45.23 o 1:05.40)")
+                tiempo_str = st.text_input("Tiempo (ej. 45.23 o 1.05.40 o 1:05.40)")
                 posicion = st.number_input("Posición", min_value=1, step=1)
                 participantes = st.number_input("Participantes", min_value=1, step=1)
                 
@@ -449,9 +460,9 @@ with tab_registro:
             
             if submitted:
                 # Validaciones
-                evento_final = nuevo_evento.strip() if sel_evento == "➕ Agregar Nuevo Evento" else sel_evento
-                estilo_final = nuevo_estilo.strip() if sel_estilo == "➕ Agregar Nuevo Estilo" else sel_estilo
-                distancia_final = nueva_distancia.strip() if sel_distancia == "➕ Agregar Nueva Distancia" else sel_distancia
+                evento_final = nuevo_evento.strip() if sel_evento == "➕ Agregar" else sel_evento
+                estilo_final = nuevo_estilo.strip() if sel_estilo == "➕ Agregar" else sel_estilo
+                distancia_final = nueva_distancia.strip() if sel_distancia == "➕ Agregar" else sel_distancia
                 
                 if not evento_final or not estilo_final or not distancia_final or not tiempo_str:
                     st.error("Por favor completa todos los campos requeridos (Evento, Estilo, Distancia y Tiempo).")
@@ -470,7 +481,7 @@ with tab_registro:
                     segundos = parse_t(tiempo_str)
                     
                     if segundos is None:
-                        st.error("El formato del tiempo es incorrecto. Usa formato SS.MM o MM:SS.MM (ej. 45.23 o 1:05.20)")
+                        st.error("El formato del tiempo es incorrecto. Usa formato SS.MM o MM.SS.MM o MM:SS.MM")
                     else:
                         año_str = str(fecha_inicio.year)
                         
@@ -485,7 +496,7 @@ with tab_registro:
                             "Estilo": estilo_final,
                             "Distancia": distancia_final,
                             "Posicion": str(posicion),
-                            "Tiempo": tiempo_str,
+                            "Tiempo": format_time_str(tiempo_str),
                             "Segundos": segundos,
                             "Participantes": str(participantes)
                         }
