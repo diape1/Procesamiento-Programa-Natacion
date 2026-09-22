@@ -52,11 +52,11 @@ with st.sidebar:
         ''')
 
 tab_evento, tab_resultados, tab_analitica, tab_registro, tab_ranking, tab_tope = st.tabs([
-    "🏊 Programa de Competencia", 
-    "🏅 Resultados Personales", 
+    "🏊 Programa", 
+    "🏅 Histórico", 
     "📈 Analítica", 
-    "➕ Registrar Resultado", 
-    "🏆 Ranking CDMX",
+    "📝 Registrar", 
+    "🏆 Ranking",
     "⏱️ Campeonato Nacional"
 ])
 
@@ -337,18 +337,28 @@ with tab_analitica:
             ).interactive()
             
             st.altair_chart(chart, use_container_width=True)
-            st.caption("Eje X: Fecha de Competencia | Eje Y: Tiempo (Segundos). Un tiempo menor es mejor.")
-            
+                        
             st.markdown("### Estadísticas")
             stats_cols = st.columns(len(an_filtered["Nombre"].unique()))
             for idx, n in enumerate(an_filtered["Nombre"].unique()):
                 swimmer_data = an_filtered[an_filtered["Nombre"] == n]
                 if not swimmer_data.empty:
-                    mejor_tiempo = swimmer_data["Segundos"].min()
-                    mejor_tiempo_str = swimmer_data[swimmer_data["Segundos"] == mejor_tiempo]["Tiempo"].iloc[0]
+                    mejor_fila = swimmer_data.loc[swimmer_data["Segundos"].idxmin()]
+                    mejor_tiempo_str = mejor_fila["Tiempo"]
+                    mejor_evento = mejor_fila.get("Evento", "")
+                    mejor_fecha = mejor_fila.get("Fecha Fmt", "")
+                    mejor_edad = mejor_fila.get("Edad_Evt", "")
+                    mejor_curso = mejor_fila.get("Curso", "")
+                    
+                    ultima_fila = swimmer_data.iloc[-1]
+                    ultimo_tiempo_str = ultima_fila["Tiempo"]
+                    ultimo_evento = ultima_fila.get("Evento", "")
+                    ultima_fecha = ultima_fila.get("Fecha Fmt", "")
+                    ultimo_edad = ultima_fila.get("Edad_Evt", "")
+                    ultimo_curso = ultima_fila.get("Curso", "")
+                    
                     primer_tiempo = swimmer_data["Segundos"].iloc[0]
-                    ultimo_tiempo = swimmer_data["Segundos"].iloc[-1]
-                    ultimo_tiempo_str = swimmer_data["Tiempo"].iloc[-1]
+                    ultimo_tiempo = ultima_fila["Segundos"]
                     
                     mejora = primer_tiempo - ultimo_tiempo
                     mejora_str = f"{mejora:.2f} s" if mejora > 0 else f"{mejora:.2f} s (sin mejora)"
@@ -356,8 +366,10 @@ with tab_analitica:
                     with stats_cols[idx]:
                         st.info(f"**{n}**")
                         st.write(f"Mejor tiempo histórico: **{mejor_tiempo_str}**")
+                        st.caption(f"📅 {mejor_fecha} | 🎂 {mejor_edad} | 📍 {mejor_evento} ({mejor_curso})")
                         st.write(f"Último tiempo: **{ultimo_tiempo_str}**")
-                        st.write(f"Mejora total (1ra vs Última): **{mejora_str}**")
+                        st.caption(f"📅 {ultima_fecha} | 🎂 {ultimo_edad} | 📍 {ultimo_evento} ({ultimo_curso})")
+                        st.write(f"Mejora total (1ra vs última): **{mejora_str}**")
                         st.write(f"Competencias registradas: **{len(swimmer_data)}**")
         else:
             st.info("No hay datos para esta combinación de filtros.")
@@ -386,9 +398,9 @@ with tab_registro:
             st.subheader("Datos de la Competencia")
             c1, c2, c3, c4 = st.columns(4)
             with c1:
-                sel_evento = st.selectbox("Evento", ["-- Seleccionar --", "➕ Agregar Nuevo Evento"] + cat_eventos)
-                if sel_evento == "➕ Agregar Nuevo Evento":
-                    nuevo_evento = st.text_input("Nombre del Nuevo Evento")
+                sel_evento = st.selectbox("Evento", ["-- Seleccionar --", "➕ Agregar"] + cat_eventos)
+                if sel_evento == "➕ Agregar":
+                    nuevo_evento = st.text_input("Nuevo evento")
                 else:
                     nuevo_evento = sel_evento if sel_evento != "-- Seleccionar --" else ""
             with c2:
@@ -404,15 +416,15 @@ with tab_registro:
                 nadador = st.selectbox("Nadador", ["Ian", "Iker"])
                 curso = st.selectbox("Curso", ["CC", "CL", "AA"])
             with c6:
-                sel_estilo = st.selectbox("Estilo", ["-- Seleccionar --", "➕ Agregar Nuevo Estilo"] + cat_estilos)
-                if sel_estilo == "➕ Agregar Nuevo Estilo":
-                    nuevo_estilo = st.text_input("Nombre del Nuevo Estilo (ej. Libre)")
+                sel_estilo = st.selectbox("Estilo", ["-- Seleccionar --", "➕ Agregar"] + cat_estilos)
+                if sel_estilo == "➕ Agregar":
+                    nuevo_estilo = st.text_input("Nuevo estilo")
                 else:
                     nuevo_estilo = sel_estilo if sel_estilo != "-- Seleccionar --" else ""
             with c7:
-                sel_distancia = st.selectbox("Distancia", ["-- Seleccionar --", "➕ Agregar Nueva Distancia"] + cat_distancias)
-                if sel_distancia == "➕ Agregar Nueva Distancia":
-                    nueva_distancia = st.text_input("Nueva Distancia (ej. 200)")
+                sel_distancia = st.selectbox("Distancia", ["-- Seleccionar --", "➕ Agregar"] + cat_distancias)
+                if sel_distancia == "➕ Agregar":
+                    nueva_distancia = st.text_input("Nueva distancia")
                 else:
                     nueva_distancia = sel_distancia if sel_distancia != "-- Seleccionar --" else ""
             with c8:
