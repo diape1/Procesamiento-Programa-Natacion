@@ -470,6 +470,7 @@ with tab_registro:
                     # Parsear tiempo a segundos
                     def parse_t(t_str):
                         try:
+                            t_str = format_time_str(t_str)
                             if ':' in t_str:
                                 p = t_str.split(':')
                                 return int(p[0]) * 60 + float(p[1])
