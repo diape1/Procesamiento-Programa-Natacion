@@ -15,6 +15,16 @@ def remove_accents(input_str):
     nfkd_form = unicodedata.normalize('NFKD', str(input_str))
     return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
 
+
+def sort_dist(arr):
+    def get_num(x):
+        try:
+            return int(''.join(filter(str.isdigit, str(x))))
+        except:
+            return float('inf')
+    return sorted(arr, key=get_num)
+
+
 st.set_page_config(page_title="Gestor de Natación", layout="wide")
 st.title("Gestor Integral de Natación")
 
@@ -120,7 +130,7 @@ with tab_tope:
         
         st.dataframe(filtered, use_container_width=True, hide_index=True)
     else:
-        st.warning("No se encontró el archivo \	iempos_tope.csv\ en el servidor.")
+        st.warning("No se encontró el archivo 'tiempos_tope.csv' en el servidor.")
 
 # ----------------- TAB 3: RANKING CDMX -----------------
 with tab_ranking:
@@ -222,18 +232,35 @@ with tab_resultados:
         
         # Filtros
         c1, c2, c3, c4, c5 = st.columns(5)
-        with c1: f_nombre = st.selectbox("Nadador", ["Ambos"] + list(df_res["Nombre"].dropna().unique()), key="res_nombre")
-        with c2: f_tipo = st.selectbox("Tipo de Evento", ["Todos"] + list(df_res["Tipo"].dropna().unique()), key="res_tipo")
-        with c3: f_anio = st.selectbox("Año", ["Todos"] + list(df_res["Año"].astype(str).dropna().unique()), key="res_anio")
-        with c4: f_estilo = st.selectbox("Estilo", ["Todos"] + list(df_res["Estilo"].dropna().unique()), key="res_estilo")
-        with c5: f_dist = st.selectbox("Distancia", ["Todas"] + list(df_res["Distancia"].astype(str).dropna().unique()), key="res_dist")
+        with c1: 
+            opts_nombre = ["Ambos"] + sorted(list(df_res["Nombre"].dropna().unique()))
+            f_nombre = st.selectbox("Nadador", opts_nombre, key="res_nombre")
         
-        filtered_res = df_res.copy()
-        if f_nombre != "Ambos": filtered_res = filtered_res[filtered_res["Nombre"] == f_nombre]
-        if f_tipo != "Todos": filtered_res = filtered_res[filtered_res["Tipo"] == f_tipo]
-        if f_anio != "Todos": filtered_res = filtered_res[filtered_res["Año"].astype(str) == f_anio]
-        if f_estilo != "Todos": filtered_res = filtered_res[filtered_res["Estilo"] == f_estilo]
-        if f_dist != "Todas": filtered_res = filtered_res[filtered_res["Distancia"].astype(str) == f_dist]
+        df_f1 = df_res if f_nombre == "Ambos" else df_res[df_res["Nombre"] == f_nombre]
+        
+        with c2:
+            opts_tipo = ["Todos"] + sorted(list(df_f1["Tipo"].dropna().unique()))
+            f_tipo = st.selectbox("Tipo de Evento", opts_tipo, key="res_tipo")
+            
+        df_f2 = df_f1 if f_tipo == "Todos" else df_f1[df_f1["Tipo"] == f_tipo]
+        
+        with c3:
+            opts_anio = ["Todos"] + sorted(list(df_f2["Año"].astype(str).dropna().unique()), reverse=True)
+            f_anio = st.selectbox("Año", opts_anio, key="res_anio")
+            
+        df_f3 = df_f2 if f_anio == "Todos" else df_f2[df_f2["Año"].astype(str) == f_anio]
+        
+        with c4:
+            opts_estilo = ["Todos"] + sorted(list(df_f3["Estilo"].dropna().unique()))
+            f_estilo = st.selectbox("Estilo", opts_estilo, key="res_estilo")
+            
+        df_f4 = df_f3 if f_estilo == "Todos" else df_f3[df_f3["Estilo"] == f_estilo]
+        
+        with c5:
+            opts_dist = ["Todas"] + sort_dist(list(df_f4["Distancia"].astype(str).dropna().unique()))
+            f_dist = st.selectbox("Distancia", opts_dist, key="res_dist")
+            
+        filtered_res = df_f4 if f_dist == "Todas" else df_f4[df_f4["Distancia"].astype(str) == f_dist]
         
         cols_to_show = ["Nombre", "Año", "Tipo", "Evento", "Fecha Inicio", "Fecha Fin", "Curso", "Estilo", "Distancia", "Posicion", "Tiempo", "Participantes"]
         cols_final = [c for c in cols_to_show if c in filtered_res.columns]
@@ -253,13 +280,20 @@ with tab_analitica:
         df_an = pd.read_csv("resultados_historicos.csv").dropna(subset=["Segundos", "Fecha Inicio"])
         
         col1, col2, col3 = st.columns(3)
-        with col1: a_nombre = st.selectbox("Nadador", ["Ambos"] + list(df_an["Nombre"].dropna().unique()), key="an_nombre")
-        with col2: a_estilo = st.selectbox("Estilo", list(df_an["Estilo"].dropna().unique()), key="an_estilo")
-        with col3: a_dist = st.selectbox("Distancia", list(df_an["Distancia"].astype(str).dropna().unique()), key="an_dist")
+        with col1: 
+            a_nombre = st.selectbox("Nadador", ["Ambos"] + sorted(list(df_an["Nombre"].dropna().unique())), key="an_nombre")
+            
+        df_a1 = df_an if a_nombre == "Ambos" else df_an[df_an["Nombre"] == a_nombre]
         
-        an_filtered = df_an[(df_an["Estilo"] == a_estilo) & (df_an["Distancia"].astype(str) == a_dist)]
-        if a_nombre != "Ambos":
-            an_filtered = an_filtered[an_filtered["Nombre"] == a_nombre]
+        with col2: 
+            a_estilo = st.selectbox("Estilo", sorted(list(df_a1["Estilo"].dropna().unique())), key="an_estilo")
+            
+        df_a2 = df_a1[df_a1["Estilo"] == a_estilo]
+        
+        with col3: 
+            a_dist = st.selectbox("Distancia", sort_dist(list(df_a2["Distancia"].astype(str).dropna().unique())), key="an_dist")
+            
+        an_filtered = df_a2[df_a2["Distancia"].astype(str) == a_dist]
             
         if not an_filtered.empty:
             st.subheader(f"Evolución en {a_estilo} {a_dist}m")
@@ -330,15 +364,20 @@ with tab_registro:
         cat_estilos = list(df_base["Estilo"].dropna().unique())
         cat_distancias = list(df_base["Distancia"].dropna().astype(str).unique())
         
-        with st.form("form_registro"):
+        cat_eventos = sorted(cat_eventos)
+        cat_estilos = sorted(cat_estilos)
+        cat_distancias = sort_dist(cat_distancias)
+
+        # Usamos container en lugar de form para que las cajas condicionales reaccionen al instante.
+        with st.container():
             st.subheader("Datos de la Competencia")
             c1, c2, c3, c4 = st.columns(4)
             with c1:
-                sel_evento = st.selectbox("Evento", ["➕ Agregar Nuevo Evento"] + cat_eventos)
+                sel_evento = st.selectbox("Evento", ["-- Seleccionar --", "➕ Agregar Nuevo Evento"] + cat_eventos)
                 if sel_evento == "➕ Agregar Nuevo Evento":
                     nuevo_evento = st.text_input("Nombre del Nuevo Evento")
                 else:
-                    nuevo_evento = sel_evento
+                    nuevo_evento = sel_evento if sel_evento != "-- Seleccionar --" else ""
             with c2:
                 fecha_inicio = st.date_input("Fecha de Inicio")
             with c3:
@@ -352,23 +391,23 @@ with tab_registro:
                 nadador = st.selectbox("Nadador", ["Ian", "Iker"])
                 curso = st.selectbox("Curso", ["CC", "CL", "AA"])
             with c6:
-                sel_estilo = st.selectbox("Estilo", ["➕ Agregar Nuevo Estilo"] + cat_estilos)
+                sel_estilo = st.selectbox("Estilo", ["-- Seleccionar --", "➕ Agregar Nuevo Estilo"] + cat_estilos)
                 if sel_estilo == "➕ Agregar Nuevo Estilo":
                     nuevo_estilo = st.text_input("Nombre del Nuevo Estilo (ej. Libre)")
                 else:
-                    nuevo_estilo = sel_estilo
+                    nuevo_estilo = sel_estilo if sel_estilo != "-- Seleccionar --" else ""
             with c7:
-                sel_distancia = st.selectbox("Distancia", ["➕ Agregar Nueva Distancia"] + cat_distancias)
+                sel_distancia = st.selectbox("Distancia", ["-- Seleccionar --", "➕ Agregar Nueva Distancia"] + cat_distancias)
                 if sel_distancia == "➕ Agregar Nueva Distancia":
                     nueva_distancia = st.text_input("Nueva Distancia (ej. 200)")
                 else:
-                    nueva_distancia = sel_distancia
+                    nueva_distancia = sel_distancia if sel_distancia != "-- Seleccionar --" else ""
             with c8:
                 tiempo_str = st.text_input("Tiempo (ej. 45.23 o 1:05.40)")
                 posicion = st.number_input("Posición", min_value=1, step=1)
                 participantes = st.number_input("Participantes", min_value=1, step=1)
                 
-            submitted = st.form_submit_button("Guardar Resultado")
+            submitted = st.button("Guardar Resultado")
             
             if submitted:
                 # Validaciones
