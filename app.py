@@ -464,7 +464,11 @@ with tab_registro:
                 estilo_final = nuevo_estilo.strip() if sel_estilo == "➕ Agregar" else sel_estilo
                 distancia_final = nueva_distancia.strip() if sel_distancia == "➕ Agregar" else sel_distancia
                 
-                if not evento_final or not estilo_final or not distancia_final or not tiempo_str:
+                invalid_selections = ["", "-- Seleccionar --"]
+                if (evento_final in invalid_selections or 
+                    estilo_final in invalid_selections or 
+                    distancia_final in invalid_selections or 
+                    not tiempo_str):
                     st.error("Por favor completa todos los campos requeridos (Evento, Estilo, Distancia y Tiempo).")
                 else:
                     # Parsear tiempo a segundos
