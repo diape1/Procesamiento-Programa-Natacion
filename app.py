@@ -308,6 +308,17 @@ with tab_analitica:
             meses = {1:'Ene', 2:'Feb', 3:'Mar', 4:'Abr', 5:'May', 6:'Jun', 7:'Jul', 8:'Ago', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dic'}
             an_filtered["Fecha Fmt"] = an_filtered["Fecha_Obj"].apply(lambda x: f"{x.day:02d} {meses.get(x.month, '')} {x.year}")
             
+            # Calcular Edad en el momento de la competencia
+            def calcular_edad(row):
+                if pd.isna(row.get('Fecha_Obj')): return ""
+                bday = pd.to_datetime("2013-11-08") if row['Nombre'] == "Ian" else pd.to_datetime("2017-05-16") if row['Nombre'] == "Iker" else None
+                if not bday: return ""
+                event_date = row['Fecha_Obj']
+                age = event_date.year - bday.year - ((event_date.month, event_date.day) < (bday.month, bday.day))
+                return f"{age} años"
+            
+            an_filtered['Edad_Evt'] = an_filtered.apply(calcular_edad, axis=1)
+
             # Tomar el mejor tiempo si un nadador tiene múltiples hits en el mismo evento (para evitar líneas duplicadas confusas)
             an_filtered = an_filtered.loc[an_filtered.groupby(["Nombre", "Fecha Inicio"])["Segundos"].idxmin()]
             
@@ -317,7 +328,9 @@ with tab_analitica:
                 color='Nombre:N',
                 tooltip=[
                     alt.Tooltip('Nombre:N', title='Nadador'),
+                    alt.Tooltip('Edad_Evt:N', title='Edad'),
                     alt.Tooltip('Fecha Fmt:N', title='Fecha'),
+                    alt.Tooltip('Curso:N', title='Curso'),
                     alt.Tooltip('Evento:N', title='Evento'),
                     alt.Tooltip('Tiempo:N', title='Tiempo')
                 ]
