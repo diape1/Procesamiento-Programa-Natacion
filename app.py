@@ -162,8 +162,8 @@ with tab_ranking:
             if len(filtered_rank) > 0:
                 # Mostrar todos los nombres encontrados
                 nombres_encontrados = list(filtered_rank['Nombre'].unique())
-                msg = "Resultados para:\\n" + "\\n".join([f"- **{n}**" for n in nombres_encontrados])
-                st.success(msg)
+                nombres_bullets = "\n".join([f"- **{n}**" for n in nombres_encontrados])
+                st.success(f"Resultados para:\n\n{nombres_bullets}")
                 
                 # Filtros adicionales
                 fechas_unicas = list(filtered_rank["Fecha_Ranking"].dropna().unique())
