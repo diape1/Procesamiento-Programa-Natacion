@@ -752,7 +752,7 @@ def main(page: ft.Page):
     import json
     import os
     
-    tope_rama = ft.Dropdown(label="Rama", options=[ft.dropdown.Option("Femenil"), ft.dropdown.Option("Varonil")], value="Femenil", border_radius=10, expand=True)
+    tope_rama = ft.Dropdown(label="Rama", options=[ft.dropdown.Option("Femenil"), ft.dropdown.Option("Varonil")], value="Varonil", border_radius=10, expand=True)
     tope_categoria = ft.Dropdown(label="Categoría", options=[
         ft.dropdown.Option("12"), ft.dropdown.Option("13-14"), 
         ft.dropdown.Option("15-16"), ft.dropdown.Option("17-21")
@@ -790,8 +790,11 @@ def main(page: ft.Page):
                         ])
                     )
             
-            try: tope_table.update()
-            except: pass
+            try:
+                tope_table.update()
+                page.update()
+            except:
+                pass
         except Exception as ex:
             print("Error cargando Tiempos Tope:", ex)
             
