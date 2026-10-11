@@ -15,6 +15,9 @@ import unicodedata
 from datetime import datetime, time
 
 # App modules
+import importlib
+import pdf_parser
+importlib.reload(pdf_parser)
 from pdf_parser import extract_competition_data, calculate_timeline, generate_whatsapp_messages, generate_csv
 
 def remove_accents(input_str):
