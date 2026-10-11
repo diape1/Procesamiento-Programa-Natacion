@@ -28,27 +28,64 @@ def extract_competition_data(pdf_file):
             if left: text_lines.extend([line.strip() for line in left.splitlines() if line.strip()])
             if right: text_lines.extend([line.strip() for line in right.splitlines() if line.strip()])
 
-    events = [] 
+    events = []
     current_event_obj = None
     current_heat = None
     last_seen_evento = None
     current_total_heats = '?'
+    distance_swimmers = []
 
     re_evento = re.compile(r'^Evento\s+(\d+)\s+(Muj|Hom)\s+(.*)$')
+    re_standards = re.compile(r'(\d+-\d+|\d+\s*&\s*May)')
     re_serie = re.compile(r'^Serie\s+(\d+)\s*(?:of\s+(\d+))?\s*Finales')
-    re_swimmer = re.compile(r'^(\d)\s*(.*?)\s+(\d{1,2})\s*([A-Z0-9\-]+)\s+(.*)$')
+    re_swimmer_lane = re.compile(r'^([0-9]|10)\s*(.*?)\s+(\d{1,2})\s*([A-Z0-9\-]+)\s+(.*)$')
+    re_swimmer_rank = re.compile(r"^(\d+)\s*(.+?)\s+(\d{1,2})\s*([A-Z0-9\-]+)\s+(NT|[\d:\.]+)")
     re_rendimiento = re.compile(r'(R3A|R2A|R1A|O2A|O1A|D2A)')
+
+    def flush_distance_swimmers():
+        nonlocal distance_swimmers, current_event_obj
+        if not current_event_obj or not distance_swimmers:
+            distance_swimmers = []
+            return
+        
+        lane_order = ['4', '5', '3', '6', '2', '7', '1', '8']
+        num_swimmers = len(distance_swimmers)
+        lanes_per_heat = 8
+        
+        # Partition swimmers into heats of up to 8 (slowest to fastest)
+        rem = num_swimmers % lanes_per_heat
+        chunks = []
+        if rem > 0:
+            chunks.append(distance_swimmers[num_swimmers - rem:])
+            curr = num_swimmers - rem
+        else:
+            curr = num_swimmers
+            
+        while curr > 0:
+            start_idx = max(0, curr - lanes_per_heat)
+            chunks.append(distance_swimmers[start_idx:curr])
+            curr = start_idx
+            
+        for h_idx, heat_sws in enumerate(chunks):
+            heat_num = str(h_idx + 1)
+            h_obj = {'heat_num': heat_num, 'total_heats': str(len(chunks)), 'swimmers': []}
+            for s_idx, sw in enumerate(heat_sws):
+                sw_lane = lane_order[s_idx] if s_idx < len(lane_order) else str(s_idx + 1)
+                h_obj['swimmers'].append({
+                    'lane': sw_lane,
+                    'name': sw['name'],
+                    'age': sw['age'],
+                    'team': sw['team'],
+                    'time': sw['time']
+                })
+            current_event_obj['heats'].append(h_obj)
+        distance_swimmers = []
 
     for line in text_lines:
         m_ev = re_evento.match(line)
         if m_ev:
-            desc = m_ev.group(3).replace('CC m ', '').strip()
-            last_seen_evento = {
-                'num': m_ev.group(1),
-                'gender': m_ev.group(2),
-                'desc': desc,
-                'raw': line
-            }
+            num, gender, rest = m_ev.groups()
+            desc = rest.replace('CC m ', '').strip()
             parts = desc.split()
             dist = ''
             style = ''
@@ -57,47 +94,89 @@ def extract_competition_data(pdf_file):
                     dist = p
                     style = ' '.join(parts[i+1:])
                     break
-            last_seen_evento['distance'] = dist
-            last_seen_evento['style'] = style
-            continue
-        
-        if re_rendimiento.search(line):
-            continue
-        
-        m_serie = re_serie.match(line)
-        if m_serie:
-            if not current_event_obj or current_event_obj['num'] != last_seen_evento['num']:
+
+            last_seen_evento = {
+                'num': num,
+                'gender': gender,
+                'desc': desc,
+                'distance': dist or '50',
+                'style': style or 'Libre',
+                'raw': line
+            }
+
+            # If this is the real overall event (not category standards)
+            if not re_standards.search(rest):
+                flush_distance_swimmers()
                 current_event_obj = {
-                    'num': last_seen_evento['num'],
-                    'name': last_seen_evento['raw'],
+                    'num': num,
+                    'name': line,
                     'distance': last_seen_evento['distance'],
                     'style': last_seen_evento['style'],
-                    'clean_name': f"Evento {last_seen_evento['num']} {last_seen_evento['gender']} {last_seen_evento['desc']}",
+                    'clean_name': f"Evento {num} {gender} {desc}",
                     'heats': []
                 }
                 events.append(current_event_obj)
-            
+                current_heat = None
+                current_total_heats = '?'
+            continue
+
+        if re_rendimiento.search(line) or "Equipo / Nombre" in line or "Carril / Nombre" in line:
+            continue
+
+        m_serie = re_serie.match(line)
+        if m_serie:
+            flush_distance_swimmers()
+            if not current_event_obj or (last_seen_evento and current_event_obj['num'] != last_seen_evento['num']):
+                if last_seen_evento:
+                    current_event_obj = {
+                        'num': last_seen_evento['num'],
+                        'name': last_seen_evento['raw'],
+                        'distance': last_seen_evento['distance'],
+                        'style': last_seen_evento['style'],
+                        'clean_name': f"Evento {last_seen_evento['num']} {last_seen_evento['gender']} {last_seen_evento['desc']}",
+                        'heats': []
+                    }
+                    events.append(current_event_obj)
+
             if m_serie.group(2):
                 current_total_heats = m_serie.group(2)
 
             current_heat = {'heat_num': m_serie.group(1), 'total_heats': current_total_heats, 'swimmers': []}
-            current_event_obj['heats'].append(current_heat)
+            if current_event_obj:
+                current_event_obj['heats'].append(current_heat)
             continue
-        
-        m_sw = re_swimmer.match(line)
-        if m_sw and current_heat:
-            lane, name, age, team, time = m_sw.groups()
-            
-            clean_time = time.replace('_', '').strip()
-            
-            current_heat['swimmers'].append({
-                'lane': lane.strip(),
-                'name': name.strip(),
-                'age': age.strip(),
-                'team': team.strip(),
-                'time': clean_time
-            })
 
+        # If in heat with Serie
+        if current_heat:
+            m_sw = re_swimmer_lane.match(line)
+            if m_sw:
+                lane, name, age, team, time = m_sw.groups()
+                clean_time = time.replace('_', '').strip()
+                current_heat['swimmers'].append({
+                    'lane': lane.strip(),
+                    'name': name.strip(),
+                    'age': age.strip(),
+                    'team': team.strip(),
+                    'time': clean_time
+                })
+                continue
+
+        # If distance event without Serie headers (e.g. 800m Libre)
+        if current_event_obj and not current_heat:
+            m_rank = re_swimmer_rank.match(line)
+            if m_rank:
+                rank, name, age, team, time = m_rank.groups()
+                clean_time = time.replace('_', '').strip()
+                distance_swimmers.append({
+                    'rank': rank,
+                    'name': name.strip(),
+                    'age': age.strip(),
+                    'team': team.strip(),
+                    'time': clean_time
+                })
+                continue
+
+    flush_distance_swimmers()
     return events
 
 def calculate_timeline(events, start_time_dt, delay_per_heat=None, delay_per_event=15, delay_style_change=20):
