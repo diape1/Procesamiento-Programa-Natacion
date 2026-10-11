@@ -52,19 +52,8 @@ def extract_competition_data(pdf_file):
         num_swimmers = len(distance_swimmers)
         lanes_per_heat = 8
         
-        # Partition swimmers into heats of up to 8 (slowest to fastest)
-        rem = num_swimmers % lanes_per_heat
-        chunks = []
-        if rem > 0:
-            chunks.append(distance_swimmers[num_swimmers - rem:])
-            curr = num_swimmers - rem
-        else:
-            curr = num_swimmers
-            
-        while curr > 0:
-            start_idx = max(0, curr - lanes_per_heat)
-            chunks.append(distance_swimmers[start_idx:curr])
-            curr = start_idx
+        # Partition swimmers from fastest to slowest (Serie 1: mejores 8, Serie 2: siguientes 8...)
+        chunks = [distance_swimmers[i:i + lanes_per_heat] for i in range(0, num_swimmers, lanes_per_heat)]
             
         for h_idx, heat_sws in enumerate(chunks):
             heat_num = str(h_idx + 1)
