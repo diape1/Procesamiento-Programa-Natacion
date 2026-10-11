@@ -160,17 +160,11 @@ def categorize_ages(swimmers):
 def format_swimmer_block(sw, targets, include_age=False):
     name_str = sw['name']
     if any(t.lower() in name_str.lower() for t in targets):
-        name_str = f"_{name_str}_" # Italics for targets
-    
-    block = f"  🏊‍♂️ *Carril {sw['lane']}*\n"
-    if include_age:
-        # We only show the age, removed the team name because it's redundant
-        block += f"  👤 {name_str} ({sw['age']})\n"
-    else:
-        block += f"  👤 {name_str}\n"
-    block += f"  ⏱️ Tiempo: {sw['time']}\n"
+        name_str = f"_{name_str}_"
+    name_display = f"{name_str} ({sw['age']})" if include_age else name_str
+    block = f"     ▫️ *Carril {sw['lane']}:* {name_display}\n"
+    block += f"     ▫️ ⏱️ Tiempo: {sw['time']}\n"
     return block
-
 def generate_whatsapp_messages(events, team_name="PLAN-CX", targets=["Reyes Olivera"], show_all_predictions=False):
     msg1 = "*🏆 Resumen de Eventos*\n\n"
     last_combo = None
@@ -232,8 +226,8 @@ def generate_whatsapp_messages(events, team_name="PLAN-CX", targets=["Reyes Oliv
                 if any(t.lower() in sw['name'].lower() for t in targets):
                     horario = h['estimated_start'].strftime('%I:%M %p') if 'estimated_start' in h else 'N/A'
                     
-                    block = f"🔹 *{ev['clean_name']}*\n"
-                    block += f"🔸 _Serie {h['heat_num']} de {h['total_heats']}_ - ⏰ *{horario}*\n"
+                    block = f"🔹 *{ev['clean_name']}*\n\n"
+                    block += f"  ▶️ *[ SERIE {h['heat_num']} de {h['total_heats']} ]* — ⏰ *{horario}*\n"
                     # Pass include_age=False for targets
                     block += format_swimmer_block(sw, targets, include_age=False)
                     block += "\n"
@@ -271,14 +265,14 @@ def generate_whatsapp_messages(events, team_name="PLAN-CX", targets=["Reyes Oliv
                 
                 if show_all_predictions or has_target:
                     horario = est_start.strftime('%I:%M %p') if est_start else 'N/A'
-                    msg3 += f"🔸 _Serie {heat_num} de {total_heats}_ - ⏰ *{horario}*\n"
+                    msg3 += f"  ▶️ *[ SERIE {heat_num} de {total_heats} ]* — ⏰ *{horario}*\n"
                 else:
-                    msg3 += f"🔸 _Serie {heat_num} de {total_heats}_\n"
+                    msg3 += f"  ▶️ *[ SERIE {heat_num} de {total_heats} ]*\n"
                     
                 for sw in swimmers:
                     # Pass include_age=True for team list, but no team name anymore
                     msg3 += format_swimmer_block(sw, targets, include_age=True)
-            msg3 += "\n"
+                msg3 += "\n"
 
     return msg1, msg2, msg3
 
