@@ -100,7 +100,7 @@ def extract_competition_data(pdf_file):
 
     return events
 
-def calculate_timeline(events, start_time_dt, delay_per_heat=None, delay_per_event=15, delay_style_change=5):
+def calculate_timeline(events, start_time_dt, delay_per_heat=None, delay_per_event=15, delay_style_change=20):
     current_time = start_time_dt
     last_style = None
     
@@ -109,7 +109,7 @@ def calculate_timeline(events, start_time_dt, delay_per_heat=None, delay_per_eve
         if last_style is not None:
             if style != last_style:
                 # Break for style change
-                current_time += timedelta(minutes=delay_style_change)
+                current_time += timedelta(seconds=delay_style_change)
             else:
                 # Small break between same style events (men/women)
                 current_time += timedelta(seconds=delay_per_event)
@@ -128,11 +128,11 @@ def calculate_timeline(events, start_time_dt, delay_per_heat=None, delay_per_eve
                     max_time = t
             
             if max_time == 0:
-                max_time = (dist_num / 50.0) * 60.0 
+                max_time = (dist_num / 50.0) * 50.0 
                 
             # Dynamic overhead based on distance to prevent accumulation error
             if dist_num <= 50:
-                overhead = 30 
+                overhead = 20 
             elif dist_num == 100:
                 overhead = 20
             else:
