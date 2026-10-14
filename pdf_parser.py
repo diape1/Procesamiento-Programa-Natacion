@@ -187,6 +187,10 @@ def calculate_timeline(events, start_time_dt, delay_per_heat=None, delay_per_eve
         dist_num = int(ev['distance']) if ev['distance'].isdigit() else 50
         
         for h in ev['heats']:
+            # Ignore phantom heats with 0 swimmers (e.g. orphan headers across page breaks)
+            if len(h['swimmers']) == 0:
+                continue
+
             h['estimated_start'] = current_time
             
             max_time = 0
@@ -198,11 +202,16 @@ def calculate_timeline(events, start_time_dt, delay_per_heat=None, delay_per_eve
             if max_time == 0:
                 max_time = (dist_num / 50.0) * 50.0 
                 
-            # Dynamic overhead based on distance to prevent accumulation error
+            # Calibrated overhead based on empirical meet data:
+            # - 50m (Libre, Pecho, Mariposa): 8s (over-the-top rapid start)
+            # - 50m Dorso: 12s (in-water start and bar gripping)
+            # - 100m (Todos): 15s (balanced lane clearance)
+            # - 200m+ distances: 15s
+            is_dorso = 'dorso' in style.lower()
             if dist_num <= 50:
-                overhead = 20 
+                overhead = 12 if is_dorso else 8
             elif dist_num == 100:
-                overhead = 20
+                overhead = 15
             else:
                 overhead = 15 
                 
