@@ -1,4 +1,4 @@
-# Gestor Integral de Natación - v1.6 (Calibración empírica de tiempos de series: 50m 8s/12s, 100m 15s)
+# Gestor Integral de Natación - v1.7 (Nuevos registros Las Estacas 2026, soporte 750m y Libre a Favor)
 import streamlit as st
 import tempfile
 import os
@@ -490,8 +490,8 @@ with tab_registro:
         
         # Obtener catálogos únicos
         cat_eventos = list(df_base["Evento"].dropna().unique())
-        cat_estilos = list(df_base["Estilo"].dropna().unique())
-        cat_distancias = list(df_base["Distancia"].dropna().astype(str).unique())
+        cat_estilos = list(set(list(df_base["Estilo"].dropna().unique()) + ["Libre a Favor", "Libre Contra Corriente"]))
+        cat_distancias = list(set(list(df_base["Distancia"].dropna().astype(str).unique()) + ["750"]))
         
         cat_eventos = sorted(cat_eventos)
         cat_estilos = sorted(cat_estilos)
