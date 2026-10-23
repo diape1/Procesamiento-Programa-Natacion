@@ -16,6 +16,9 @@ import unicodedata
 from datetime import datetime, time
 
 # App modules
+import importlib
+import pdf_parser
+importlib.reload(pdf_parser)
 from pdf_parser import extract_competition_data, calculate_timeline, generate_whatsapp_messages, generate_csv
 
 def remove_accents(input_str):
@@ -99,7 +102,11 @@ with tab_evento:
                     m1, m2, m3 = generate_whatsapp_messages(events, team_name=team_name, targets=targets, show_all_predictions=show_pred)
                     csv_data = generate_csv(events)
 
-                    st.success("¡Programa procesado con éxito!")
+                    total_swimmers_count = sum(len(h['swimmers']) for e in events for h in e['heats'])
+                    if len(events) > 0:
+                        st.success(f"¡Programa procesado con éxito! ({len(events)} eventos detectados, {total_swimmers_count} nadadores)")
+                    else:
+                        st.warning("⚠️ No se detectaron eventos en el PDF cargado.")
                     
                     st.subheader("1. Resumen de Eventos")
                     with st.container(height=400): st.code(m1, language="markdown")
