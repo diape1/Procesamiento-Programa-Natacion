@@ -445,13 +445,18 @@ def generate_whatsapp_messages(events, team_name="PLAN-CX", targets=["Reyes Oliv
     else:
         msg2 = "*🎯 Competencias*\nNo se encontraron competencias para los nadadores buscados.\n"
 
+    # Support multiple team aliases (e.g. "PLAN-CX; Plan Sexenal")
+    target_teams = [t.strip().lower() for t in re.split(r'[;,]', team_name) if t.strip()]
+    if not target_teams:
+        target_teams = [team_name.strip().lower()]
+
     msg3 = f"*🌊 Nadadores del Equipo {team_name}*\n\n"
     last_combo_3 = None
     
     for ev in events:
         team_swimmers_in_ev = []
         for h in ev['heats']:
-            swimmers_in_heat = [sw for sw in h['swimmers'] if sw['team'] == team_name]
+            swimmers_in_heat = [sw for sw in h['swimmers'] if any(t == sw['team'].lower() or t in sw['team'].lower() for t in target_teams)]
             if swimmers_in_heat:
                 team_swimmers_in_ev.append((h['heat_num'], h['total_heats'], swimmers_in_heat, h.get('estimated_start', None)))
         
