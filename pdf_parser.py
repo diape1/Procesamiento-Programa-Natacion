@@ -19,6 +19,90 @@ def parse_time_to_seconds(time_str):
         return None
     return None
 
+def parse_event_desc(rest):
+    m_dist = re.search(r'\b(4x\d+|\d+)\s*(?:CC|CL)?\s*(?:m\b|mts\.?|metros\b)', rest, re.IGNORECASE)
+    if not m_dist:
+        m_dist = re.search(r'(?<!-)\b(4x\d+|1500|1000|800|750|400|200|100|50|25)\b(?!-)', rest, re.IGNORECASE)
+    dist = m_dist.group(1) if m_dist else '50'
+    
+    style_patterns = [
+        (r'patada\s+de\s+crol', 'Patada de Crol'),
+        (r'patada\s+de\s+dorso', 'Patada de Dorso'),
+        (r'libre[s]?', 'Libre'),
+        (r'dorso', 'Dorso'),
+        (r'pecho', 'Pecho'),
+        (r'mariposa', 'Mariposa'),
+        (r'c\.?i\.?|combinado', 'Combinado'),
+        (r'relevo', 'Relevo')
+    ]
+    style = 'Libre'
+    for pat, st_name in style_patterns:
+        if re.search(pat, rest, re.IGNORECASE):
+            style = st_name
+            break
+            
+    return dist, style
+
+def clean_swimmer_name(name):
+    name = re.sub(r'(\d+)', '', name)
+    name = re.sub(r'\bOlive\s*r\s*a\b', 'Olivera', name, flags=re.IGNORECASE)
+    name = re.sub(r'\s+([a-zA-Z])\s+([a-zA-Z])(?:\s|$)', r'\1\2 ', name)
+    name = re.sub(r'\s+([a-zA-Z])(?:\s|$)', r'\1 ', name)
+    name = re.sub(r'\s+', ' ', name).strip()
+    return name
+
+def parse_swimmer_line_justo_sierra(line):
+    line = line.strip()
+    m = re.match(r'^([1-9]|10)\s+(.*?)\s+(NT|\d+:\d+\.\d+|\d+\.\d+)\s*(?:_{2,})?$', line)
+    if not m:
+        return None
+
+    lane, middle, time_str = m.groups()
+    
+    teams_pattern = r'(Plan Sexenal|JS Primaria|Sec JS Aragon|JS Jacarandas|JS Externos|JS San Mateo|Frances Hidalgo|Colegio Highland|Leones Conrad|Acuatica Veloz|UDM|Hydrion|Kima|Prepa Aragon|Independientes|2OCT-CX|CENSO-CX)'
+    m_team = re.search(teams_pattern + r'\s*$', middle, re.IGNORECASE)
+    if m_team:
+        team = m_team.group(1).strip()
+        before_team = middle[:m_team.start()].strip()
+        m_age = re.search(r'\b(\d{1,2})\b\s*$', before_team)
+        if m_age:
+            age = m_age.group(1)
+            raw_name = before_team[:m_age.start()].strip()
+        else:
+            m_dig = re.search(r'(\d{1,2})\s*$', before_team)
+            if m_dig:
+                age = m_dig.group(1)
+                raw_name = before_team[:m_dig.start()].strip()
+            else:
+                age = ''
+                raw_name = before_team
+        return {
+            'lane': lane.strip(),
+            'name': clean_swimmer_name(raw_name),
+            'age': age.strip(),
+            'team': team,
+            'time': time_str.strip()
+        }
+    else:
+        parts = middle.split()
+        if len(parts) >= 3 and parts[-2].isdigit():
+            return {
+                'lane': lane.strip(),
+                'name': clean_swimmer_name(' '.join(parts[:-2])),
+                'age': parts[-2],
+                'team': parts[-1],
+                'time': time_str.strip()
+            }
+        elif len(parts) >= 2:
+            return {
+                'lane': lane.strip(),
+                'name': clean_swimmer_name(' '.join(parts[:-1])),
+                'age': '',
+                'team': parts[-1],
+                'time': time_str.strip()
+            }
+    return None
+
 def extract_competition_data(pdf_file):
     text_lines = []
     with pdfplumber.open(pdf_file) as pdf:
@@ -35,10 +119,14 @@ def extract_competition_data(pdf_file):
     current_total_heats = '?'
     distance_swimmers = []
 
-    re_evento = re.compile(r'^Evento\s+(\d+)\s+(Muj|Hom)\s+(.*)$')
+    # Support traditional (Muj|Hom) and expanded formats (Mujer|Hombres|Niñas|Niños|Mixto)
+    re_evento = re.compile(r'^Evento\s+(\d+)\s+(Mujer|Hombres|Muj|Hom|Niñas|Niños|Niñ[ao]s|Mixto)\s+(.*)$', re.IGNORECASE)
     re_standards = re.compile(r'(\d+-\d+|\d+\s*&\s*May)')
-    re_serie = re.compile(r'^Serie\s+(\d+)\s*(?:of\s+(\d+))?\s*Finales')
-    re_swimmer_lane = re.compile(r'^([0-9]|10)\s*(.*?)\s+(\d{1,2})\s*([A-Z0-9\-]+)\s+(.*)$')
+    # Support Serie and Heat headers
+    re_serie = re.compile(r'^(?:Serie|Heat)\s+(\d+)\s*(?:of\s+(\d+))?\s*(?:Finales)?', re.IGNORECASE)
+    
+    # Traditional swimmer regex (strict time format, 0 or more spaces before team code):
+    re_swimmer_lane = re.compile(r'^([0-9]|10)\s*(.*?)\s+(\d{1,2})\s*([A-Z0-9\-]+)\s+(NT|\d+:\d+\.\d+|\d+\.\d+)(?:\s+__+)?$')
     re_swimmer_rank = re.compile(r"^(\d+)\s*(.+?)\s+(\d{1,2})\s*([A-Z0-9\-]+)\s+(NT|[\d:\.]+)")
     re_rendimiento = re.compile(r'(R3A|R2A|R1A|O2A|O1A|D2A)')
 
@@ -52,7 +140,6 @@ def extract_competition_data(pdf_file):
         num_swimmers = len(distance_swimmers)
         lanes_per_heat = 8
         
-        # Partition swimmers from fastest to slowest (Serie 1: mejores 8, Serie 2: siguientes 8...)
         chunks = [distance_swimmers[i:i + lanes_per_heat] for i in range(0, num_swimmers, lanes_per_heat)]
             
         for h_idx, heat_sws in enumerate(chunks):
@@ -73,27 +160,39 @@ def extract_competition_data(pdf_file):
     for line in text_lines:
         m_ev = re_evento.match(line)
         if m_ev:
-            num, gender, rest = m_ev.groups()
-            desc = rest.replace('CC m ', '').strip()
-            parts = desc.split()
-            dist = ''
-            style = ''
-            for i, p in enumerate(parts):
-                if p.isdigit() and int(p) >= 25:
-                    dist = p
-                    style = ' '.join(parts[i+1:])
-                    break
+            num = m_ev.group(1)
+            gender_raw = m_ev.group(2)
+            rest = m_ev.group(3).strip()
+
+            g_low = gender_raw.lower()
+            if 'mixt' in g_low:
+                gender = 'Mixto'
+            elif 'muj' in g_low or 'niña' in g_low or 'fem' in g_low:
+                gender = 'Muj'
+            elif 'hom' in g_low or 'niño' in g_low or 'var' in g_low:
+                gender = 'Hom'
+            else:
+                gender = gender_raw
+
+            dist, style = parse_event_desc(rest)
+
+            # Build clean desc without redundant CC m / Mts
+            clean_desc = rest
+            clean_desc = re.sub(r'\bCC\s*(?:mts?\.?|metros|m)?\b', '', clean_desc, flags=re.IGNORECASE)
+            clean_desc = re.sub(r'\s*\.\s*', ' ', clean_desc)
+            clean_desc = re.sub(r'\s+', ' ', clean_desc).strip()
 
             last_seen_evento = {
                 'num': num,
                 'gender': gender,
-                'desc': desc,
-                'distance': dist or '50',
-                'style': style or 'Libre',
+                'desc': clean_desc,
+                'distance': dist,
+                'style': style,
+                'clean_name': f"Evento {num} {gender} {clean_desc}",
                 'raw': line
             }
 
-            # If this is the real overall event (not category standards)
+            # If this is the real overall event in traditional format (not category standards)
             if not re_standards.search(rest):
                 flush_distance_swimmers()
                 current_event_obj = {
@@ -101,7 +200,7 @@ def extract_competition_data(pdf_file):
                     'name': line,
                     'distance': last_seen_evento['distance'],
                     'style': last_seen_evento['style'],
-                    'clean_name': f"Evento {num} {gender} {desc}",
+                    'clean_name': f"Evento {num} {gender} {clean_desc}",
                     'heats': []
                 }
                 events.append(current_event_obj)
@@ -109,38 +208,47 @@ def extract_competition_data(pdf_file):
                 current_total_heats = '?'
             continue
 
-        if re_rendimiento.search(line) or "Equipo / Nombre" in line or "Carril / Nombre" in line:
+        if re_rendimiento.search(line) or "Equipo / Nombre" in line or "Carril / Nombre" in line or "Carril Nombre" in line:
             continue
 
         m_serie = re_serie.match(line)
         if m_serie:
             flush_distance_swimmers()
-            if not current_event_obj or (last_seen_evento and current_event_obj['num'] != last_seen_evento['num']):
+            if not current_event_obj or (last_seen_evento and current_event_obj['num'] != last_seen_evento['num']) or (last_seen_evento and len(current_event_obj['heats']) == 0 and current_event_obj['clean_name'] != last_seen_evento['clean_name']):
                 if last_seen_evento:
-                    current_event_obj = {
-                        'num': last_seen_evento['num'],
-                        'name': last_seen_evento['raw'],
-                        'distance': last_seen_evento['distance'],
-                        'style': last_seen_evento['style'],
-                        'clean_name': f"Evento {last_seen_evento['num']} {last_seen_evento['gender']} {last_seen_evento['desc']}",
-                        'heats': []
-                    }
-                    events.append(current_event_obj)
+                    if current_event_obj and current_event_obj['num'] == last_seen_evento['num'] and len(current_event_obj['heats']) == 0:
+                        current_event_obj['name'] = last_seen_evento['raw']
+                        current_event_obj['distance'] = last_seen_evento['distance']
+                        current_event_obj['style'] = last_seen_evento['style']
+                        current_event_obj['clean_name'] = last_seen_evento['clean_name']
+                    else:
+                        current_event_obj = {
+                            'num': last_seen_evento['num'],
+                            'name': last_seen_evento['raw'],
+                            'distance': last_seen_evento['distance'],
+                            'style': last_seen_evento['style'],
+                            'clean_name': last_seen_evento['clean_name'],
+                            'heats': []
+                        }
+                        events.append(current_event_obj)
 
             if m_serie.group(2):
                 current_total_heats = m_serie.group(2)
+            else:
+                current_total_heats = '?'
 
             current_heat = {'heat_num': m_serie.group(1), 'total_heats': current_total_heats, 'swimmers': []}
             if current_event_obj:
                 current_event_obj['heats'].append(current_heat)
             continue
 
-        # If in heat with Serie
+        # If in heat with Serie/Heat
         if current_heat:
+            # First try traditional Meet Manager format
             m_sw = re_swimmer_lane.match(line)
             if m_sw:
-                lane, name, age, team, time = m_sw.groups()
-                clean_time = time.replace('_', '').strip()
+                lane, name, age, team, time_val = m_sw.groups()
+                clean_time = time_val.replace('_', '').strip()
                 current_heat['swimmers'].append({
                     'lane': lane.strip(),
                     'name': name.strip(),
@@ -150,12 +258,18 @@ def extract_competition_data(pdf_file):
                 })
                 continue
 
-        # If distance event without Serie headers (e.g. 800m Libre)
+            # Second try Justo Sierra / Multi-word team format
+            sw_js = parse_swimmer_line_justo_sierra(line)
+            if sw_js:
+                current_heat['swimmers'].append(sw_js)
+                continue
+
+        # If distance event without Serie headers (e.g. 800m Libre in traditional format)
         if current_event_obj and not current_heat:
             m_rank = re_swimmer_rank.match(line)
             if m_rank:
-                rank, name, age, team, time = m_rank.groups()
-                clean_time = time.replace('_', '').strip()
+                rank, name, age, team, time_val = m_rank.groups()
+                clean_time = time_val.replace('_', '').strip()
                 distance_swimmers.append({
                     'rank': rank,
                     'name': name.strip(),
@@ -166,7 +280,8 @@ def extract_competition_data(pdf_file):
                 continue
 
     flush_distance_swimmers()
-    return events
+    valid_events = [e for e in events if len(e['heats']) > 0]
+    return valid_events
 
 def calculate_timeline(events, start_time_dt, delay_per_heat=None, delay_per_event=15, delay_style_change=20):
     current_time = start_time_dt
@@ -184,7 +299,19 @@ def calculate_timeline(events, start_time_dt, delay_per_heat=None, delay_per_eve
                 
         last_style = style
         
-        dist_num = int(ev['distance']) if ev['distance'].isdigit() else 50
+        dist_str = str(ev.get('distance', '50'))
+        if '4x25' in dist_str:
+            dist_num = 100
+        elif '4x50' in dist_str:
+            dist_num = 200
+        elif '4x100' in dist_str:
+            dist_num = 400
+        elif '4x200' in dist_str:
+            dist_num = 800
+        elif dist_str.isdigit():
+            dist_num = int(dist_str)
+        else:
+            dist_num = 50
         
         for h in ev['heats']:
             # Ignore phantom heats with 0 swimmers (e.g. orphan headers across page breaks)
