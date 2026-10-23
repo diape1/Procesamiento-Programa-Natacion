@@ -1,4 +1,4 @@
-# Gestor Integral de Natación - v1.7 (Nuevos registros Las Estacas 2026, soporte 750m y Libre a Favor)
+# Gestor Integral de Natación - v1.8 (Soporte dual para programas estándar Meet Manager y formato Circuito Justo Sierra)
 import streamlit as st
 import tempfile
 import os
