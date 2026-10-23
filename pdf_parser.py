@@ -45,11 +45,55 @@ def parse_event_desc(rest):
 
 def clean_swimmer_name(name):
     name = re.sub(r'(\d+)', '', name)
-    name = re.sub(r'\bOlive\s*r\s*a\b', 'Olivera', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bOliv\s*e*r*\s*a\b', 'Olivera', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bMarti\s*nez\b', 'Martinez', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bGar\s*rido\b', 'Garrido', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bBarr\s*era\b', 'Barrera', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bGut\s*ierrez\b', 'Gutierrez', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bQu\s*intero\b', 'Quintero', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bSanch\s*ez\b', 'Sanchez', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bLo\s*renzo\b', 'Lorenzo', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bM\s*ejia\b', 'Mejia', name, flags=re.IGNORECASE)
+    name = re.sub(r'\bN\s*ieto\b', 'Nieto', name, flags=re.IGNORECASE)
     name = re.sub(r'\s+([a-zA-Z])\s+([a-zA-Z])(?:\s|$)', r'\1\2 ', name)
     name = re.sub(r'\s+([a-zA-Z])(?:\s|$)', r'\1 ', name)
     name = re.sub(r'\s+', ' ', name).strip()
     return name
+
+def matches_target_swimmer(targets, swimmer_name):
+    def norm(s):
+        return re.sub(r'[^a-zA-Z0-9]', '', s.lower())
+    
+    norm_sw = norm(swimmer_name)
+    for t in targets:
+        t_clean = t.strip()
+        if not t_clean:
+            continue
+        norm_t = norm(t_clean)
+        if norm_t in norm_sw:
+            return True
+        tokens = [norm(tok) for tok in t_clean.split() if len(tok) >= 3]
+        if tokens and all(tok in norm_sw for tok in tokens):
+            return True
+        if 'reyes' in norm_t and 'olivera' in norm_t:
+            if 'reyes' in norm_sw and ('olivera' in norm_sw or 'oliv' in norm_sw):
+                return True
+    return False
+
+def matches_team_name(team_query, swimmer_team):
+    sw_team = swimmer_team.lower().strip()
+    target_teams = [t.strip().lower() for t in re.split(r'[;,]', team_query) if t.strip()]
+    if not target_teams:
+        target_teams = [team_query.strip().lower()]
+    for q in target_teams:
+        if not q:
+            continue
+        if q in sw_team or sw_team in q:
+            return True
+        # Equivalent aliases for Plan Sexenal / PLAN-CX / Plan
+        if ('plan' in q or 'sexenal' in q) and ('plan' in sw_team or 'sexenal' in sw_team):
+            return True
+    return False
 
 def parse_swimmer_line_justo_sierra(line):
     line = line.strip()
@@ -363,7 +407,7 @@ def categorize_ages(swimmers):
 
 def format_swimmer_block(sw, targets, include_age=False):
     name_str = sw['name']
-    if any(t.lower() in name_str.lower() for t in targets):
+    if matches_target_swimmer(targets, name_str):
         name_str = f"_{name_str}_"
     name_display = f"{name_str} ({sw['age']})" if include_age else name_str
     block = f"     ▫️ *Carril {sw['lane']}:* {name_display}\n"
@@ -427,7 +471,7 @@ def generate_whatsapp_messages(events, team_name="PLAN-CX", targets=["Reyes Oliv
     for ev in events:
         for h in ev['heats']:
             for sw in h['swimmers']:
-                if any(t.lower() in sw['name'].lower() for t in targets):
+                if matches_target_swimmer(targets, sw['name']):
                     horario = h['estimated_start'].strftime('%I:%M %p') if 'estimated_start' in h else 'N/A'
                     
                     block = f"🔹 *{ev['clean_name']}*\n\n"
@@ -445,18 +489,13 @@ def generate_whatsapp_messages(events, team_name="PLAN-CX", targets=["Reyes Oliv
     else:
         msg2 = "*🎯 Competencias*\nNo se encontraron competencias para los nadadores buscados.\n"
 
-    # Support multiple team aliases (e.g. "PLAN-CX; Plan Sexenal")
-    target_teams = [t.strip().lower() for t in re.split(r'[;,]', team_name) if t.strip()]
-    if not target_teams:
-        target_teams = [team_name.strip().lower()]
-
     msg3 = f"*🌊 Nadadores del Equipo {team_name}*\n\n"
     last_combo_3 = None
     
     for ev in events:
         team_swimmers_in_ev = []
         for h in ev['heats']:
-            swimmers_in_heat = [sw for sw in h['swimmers'] if any(t == sw['team'].lower() or t in sw['team'].lower() for t in target_teams)]
+            swimmers_in_heat = [sw for sw in h['swimmers'] if matches_team_name(team_name, sw['team'])]
             if swimmers_in_heat:
                 team_swimmers_in_ev.append((h['heat_num'], h['total_heats'], swimmers_in_heat, h.get('estimated_start', None)))
         
@@ -470,7 +509,7 @@ def generate_whatsapp_messages(events, team_name="PLAN-CX", targets=["Reyes Oliv
 
             msg3 += f"🔹 *{ev['clean_name']}*\n"
             for heat_num, total_heats, swimmers, est_start in team_swimmers_in_ev:
-                has_target = any(any(t.lower() in sw['name'].lower() for t in targets) for sw in swimmers)
+                has_target = any(matches_target_swimmer(targets, sw['name']) for sw in swimmers)
                 
                 if show_all_predictions or has_target:
                     horario = est_start.strftime('%I:%M %p') if est_start else 'N/A'
