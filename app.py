@@ -34,8 +34,9 @@ def sort_dist(arr):
     return sorted(arr, key=get_num)
 
 
-st.set_page_config(page_title="Gestor de Natación", layout="wide")
-st.title("Gestor Integral de Natación")
+st.set_page_config(page_title="Gestor de Natación v1.8", layout="wide")
+st.title("🏊 Gestor Integral de Natación")
+st.caption("🚀 **Versión 1.8** — Soporte Dual: Meet Manager Oficial (Zona Sur) y Circuito Escolar (Justo Sierra)")
 
 with st.sidebar:
     with st.expander("ℹ️ Ayuda / Mantenimiento"):
@@ -77,7 +78,7 @@ with tab_evento:
     with col1:
         st.header("Configuración")
         start_time = st.time_input("Hora de inicio de la sesión", value=time(9, 0))
-        team_name = st.text_input("Equipo a buscar", value="PLAN-CX")
+        team_name = st.text_input("Equipo a buscar (o varios separados por ; )", value="PLAN-CX; Plan Sexenal")
         targets_input = st.text_input("Nadador(es) a buscar (separados por ; )", value="Reyes Olivera")
         targets = [t.strip() for t in targets_input.split(';') if t.strip()]
         st.markdown("---")
