@@ -1,4 +1,5 @@
-﻿pdfplumber
+pdfplumber
 streamlit
 google-generativeai
 pandas
+pymupdf
