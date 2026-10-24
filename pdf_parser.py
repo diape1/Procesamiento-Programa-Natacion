@@ -1,6 +1,10 @@
 import re
 import csv
 import io
+try:
+    import pymupdf as fitz
+except ImportError:
+    import fitz
 import pdfplumber
 from datetime import datetime, timedelta
 from collections import Counter
@@ -147,7 +151,134 @@ def parse_swimmer_line_justo_sierra(line):
             }
     return None
 
+def open_fitz_doc(pdf_input):
+    if hasattr(pdf_input, 'read'):
+        stream_bytes = pdf_input.read()
+        if hasattr(pdf_input, 'seek'):
+            pdf_input.seek(0)
+        return fitz.open(stream=stream_bytes, filetype="pdf")
+    elif isinstance(pdf_input, (bytes, bytearray)):
+        return fitz.open(stream=pdf_input, filetype="pdf")
+    else:
+        return fitz.open(pdf_input)
+
+def parse_justo_sierra_fitz(pdf_path):
+    doc = open_fitz_doc(pdf_path)
+    lines = [l.strip() for page in doc for l in page.get_text('text').splitlines() if l.strip()]
+    doc.close()
+    
+    events = []
+    current_event = None
+    current_heat = None
+    
+    re_evento = re.compile(r'^Evento\s+(\d+)\s+(Mujer|Hombres|Muj|Hom|Niñas|Niños|Niñ[ao]s|Mixto)\s+(.*)$', re.IGNORECASE)
+    re_heat = re.compile(r'^(?:Heat|Serie)\s+(\d+)\s*(?:of\s+(\d+))?\s*(?:Finales)?', re.IGNORECASE)
+
+    completions = [
+        (r'\bOliv$', 'Olivera'),
+        (r'\bSanc$', 'Sanchez'),
+        (r'\bMorale$', 'Morales'),
+        (r'\bMart$', 'Martinez'),
+        (r'\bAguila$', 'Aguilar'),
+        (r'\bHernand$', 'Hernandez'),
+        (r'\bGarc$', 'Garcia'),
+        (r'\bCastill$', 'Castillo'),
+        (r'\bRodrigu$', 'Rodriguez'),
+        (r'\bGonzale$', 'Gonzalez'),
+        (r'\bRonquill$', 'Ronquillo'),
+        (r'\bCalzad$', 'Calzada'),
+        (r'\bAlvar$', 'Alvarez'),
+        (r'\bAlva$', 'Alvarez'),
+        (r'\bJimene$', 'Jimenez'),
+        (r'\bGutierre$', 'Gutierrez'),
+        (r'\bVazq$', 'Vazquez'),
+        (r'\bDavi$', 'Davila'),
+        (r'\bContr$', 'Contreras'),
+        (r'\bJuare$', 'Juarez'),
+        (r'\bCarr$', 'Carrillo'),
+        (r'\bFlo$', 'Flores'),
+        (r'\bEsp$', 'Espinosa')
+    ]
+    def complete_name(n):
+        for pat, repl in completions:
+            if re.search(pat, n, re.IGNORECASE):
+                n = re.sub(pat, repl, n, flags=re.IGNORECASE)
+                break
+        return n
+
+    for i, line in enumerate(lines):
+        m_ev = re_evento.match(line)
+        if m_ev:
+            num = m_ev.group(1)
+            raw_g = m_ev.group(2)
+            desc = m_ev.group(3)
+            g_low = raw_g.lower()
+            if 'mixt' in g_low: g = 'Mixto'
+            elif 'muj' in g_low or 'niña' in g_low or 'fem' in g_low: g = 'Muj'
+            else: g = 'Hom'
+            
+            dist, style = parse_event_desc(desc)
+            clean_desc = re.sub(r'\bCC\s*(?:mts?\.?|metros|m)?\b', '', desc, flags=re.IGNORECASE)
+            clean_desc = re.sub(r'\s*\.\s*', ' ', clean_desc)
+            clean_desc = re.sub(r'\s+', ' ', clean_desc).strip()
+            
+            current_event = {
+                'num': num,
+                'name': line,
+                'gender': g,
+                'distance': dist,
+                'style': style,
+                'clean_name': f"Evento {num} {g} {clean_desc}",
+                'heats': []
+            }
+            events.append(current_event)
+            current_heat = None
+            continue
+            
+        m_h = re_heat.match(line)
+        if m_h:
+            h_num = m_h.group(1)
+            tot_h = m_h.group(2) or '?'
+            current_heat = {'heat_num': h_num, 'total_heats': tot_h, 'swimmers': []}
+            if current_event:
+                current_event['heats'].append(current_heat)
+            continue
+            
+        if line.startswith('____') and current_heat is not None:
+            if i >= 5:
+                team = lines[i-5]
+                time_str = lines[i-4]
+                age = lines[i-3]
+                name = lines[i-2]
+                lane = lines[i-1]
+                
+                if lane.isdigit():
+                    sw_obj = {
+                        'lane': lane,
+                        'name': complete_name(name),
+                        'age': age if age.isdigit() else '',
+                        'team': team,
+                        'time': time_str
+                    }
+                    current_heat['swimmers'].append(sw_obj)
+                    
+    valid_events = [e for e in events if len(e['heats']) > 0]
+    return valid_events
+
 def extract_competition_data(pdf_file):
+    try:
+        doc = open_fitz_doc(pdf_file)
+        p0 = doc[0].get_text('text') if len(doc) > 0 else ''
+        doc.close()
+    except Exception:
+        p0 = ''
+
+    if 'Circuito Acu' in p0 or 'Justo Sierra' in p0 or ('Heat ' in p0 and 'T. de Insc' in p0):
+        return parse_justo_sierra_fitz(pdf_file)
+
+    if hasattr(pdf_file, 'seek'):
+        pdf_file.seek(0)
+
     text_lines = []
     with pdfplumber.open(pdf_file) as pdf:
         for page in pdf.pages:
@@ -409,7 +540,10 @@ def format_swimmer_block(sw, targets, include_age=False):
     name_str = sw['name']
     if matches_target_swimmer(targets, name_str):
         name_str = f"_{name_str}_"
-    name_display = f"{name_str} ({sw['age']})" if include_age else name_str
+    if include_age and sw.get('age'):
+        name_display = f"{name_str} ({sw['age']})"
+    else:
+        name_display = name_str
     block = f"     ▫️ *Carril {sw['lane']}:* {name_display}\n"
     block += f"     ▫️ ⏱️ Tiempo: {sw['time']}\n"
     return block
