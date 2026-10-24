@@ -238,7 +238,10 @@ for sheet_name in xls.sheet_names:
                 pos = pos.replace('er', '').replace('do', '').replace('ro', '').replace('to', '').replace('mo', '').replace('vo', '').replace('no', '')
                 pos = ''.join(filter(str.isdigit, pos))
                 
-                parts = "" if parts == "nan" else parts
+                parts = str(parts).strip() if parts != "nan" and not pd.isna(parts) else ""
+                if '.' in parts:
+                    parts = parts.split('.')[0]
+                parts = ''.join(filter(str.isdigit, parts))
 
                 all_results.append({
                     "Nombre": swimmer,
