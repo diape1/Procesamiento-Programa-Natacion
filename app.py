@@ -379,7 +379,17 @@ with tab_resultados:
             except:
                 return [''] * len(row)
         
-        st.dataframe(filtered_res[cols_final].style.apply(color_rows_historico, axis=1), use_container_width=True, hide_index=True)
+        format_dict = {}
+        if 'Posicion' in cols_final:
+            format_dict['Posicion'] = lambda x: f"{int(round(float(x)))}" if pd.notna(x) and str(x).strip() not in ['', '<NA>', 'nan', 'None'] else ""
+        if 'Participantes' in cols_final:
+            format_dict['Participantes'] = lambda x: f"{int(round(float(x)))}" if pd.notna(x) and str(x).strip() not in ['', '<NA>', 'nan', 'None'] else ""
+
+        styled_res = filtered_res[cols_final].style.apply(color_rows_historico, axis=1)
+        if format_dict:
+            styled_res = styled_res.format(format_dict)
+
+        st.dataframe(styled_res, use_container_width=True, hide_index=True)
     else:
         st.warning("No se encontró el archivo resultados_historicos.csv. Asegúrate de ejecutar el script de procesamiento primero.")
 
@@ -588,10 +598,10 @@ with tab_registro:
                             "Curso": curso,
                             "Estilo": estilo_final,
                             "Distancia": distancia_final,
-                            "Posicion": str(posicion),
+                            "Posicion": str(int(posicion)),
                             "Tiempo": format_time_str(tiempo_str),
                             "Segundos": segundos,
-                            "Participantes": str(participantes)
+                            "Participantes": str(int(participantes))
                         }
                         
                         df_base = pd.concat([df_base, pd.DataFrame([nuevo_registro])], ignore_index=True)
