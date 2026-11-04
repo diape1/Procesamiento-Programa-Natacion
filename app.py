@@ -4,6 +4,7 @@ import tempfile
 import os
 import pandas as pd
 import altair as alt
+import plotly.graph_objects as go
 
 def format_time_str(t_str):
     if not isinstance(t_str, str): return t_str
@@ -547,123 +548,123 @@ with tab_analitica:
             else:
                 st.info(f"ℹ️ **Información sobre Marcas Nacionales:** La prueba de **{a_dist}m {a_estilo}** no forma parte del programa oficial del Campeonato Nacional (en Combinado Individual a nivel nacional la FMN únicamente convoca **200m y 400m**; además en alberca de 50m no existe la distancia de 100m C.I.). Por esta razón no se muestran líneas de tope nacional en esta prueba.")
             
-            # Control de etiquetas en los puntos
-            mostrar_etiquetas = st.checkbox("🏷️ Mostrar cifras de tiempo directamente sobre la gráfica", value=True)
-            
-            # Calcular escala Y unificada que incluya tanto los tiempos del nadador como las marcas tope nacionales
-            all_y_vals = list(an_filtered['Segundos'].dropna())
-            if sec_tope_cc is not None:
-                all_y_vals.append(sec_tope_cc)
-            if sec_tope_cl is not None:
-                all_y_vals.append(sec_tope_cl)
+            # Controles de visualización y filtrado temporal para evitar saturación de cifras
+            c_f1, c_f2 = st.columns([1, 2])
+            with c_f1:
+                # Extraer años disponibles
+                años_disponibles = sorted(list(an_filtered['Fecha Inicio'].dropna().astype(str).str[:4].unique()), reverse=True)
+                filtro_año = st.selectbox("📅 Filtrar Año / Periodo", ["Todos los años"] + años_disponibles, key="an_filtro_año")
+            with c_f2:
+                modo_etiquetas = st.radio(
+                    "🏷️ Etiquetas sobre los puntos:",
+                    ["⭐ Solo Mejor Marca (PB) y Último Tiempo (Recomendado)", "🔢 Todas las competencias", "❌ Sin etiquetas (ver al tocar/posar)"],
+                    horizontal=True,
+                    key="an_modo_etiquetas"
+                )
                 
-            min_y = min(all_y_vals)
-            max_y = max(all_y_vals)
-            padding_y = (max_y - min_y) * 0.08 if max_y != min_y else 2.0
-            y_scale = alt.Scale(domain=[max(0.0, min_y - padding_y), max_y + padding_y])
-            
-            # Capas de la gráfica en Altair
-            base_chart = alt.Chart(an_filtered)
-            
-            chart_line = base_chart.mark_line(strokeWidth=3).encode(
-                x=alt.X('Fecha Inicio:T', title='Fecha'),
-                y=alt.Y('Segundos:Q', title='Tiempo (Segundos)', scale=y_scale),
-                color=alt.Color('Nombre:N', legend=alt.Legend(title="Nadador"))
-            )
-            
-            chart_points = base_chart.mark_point(size=140, filled=True).encode(
-                x=alt.X('Fecha Inicio:T'),
-                y=alt.Y('Segundos:Q', scale=y_scale),
-                color=alt.Color('Nombre:N', legend=None),
-                tooltip=[
-                    alt.Tooltip('Nombre:N', title='👤 Nadador'),
-                    alt.Tooltip('Tiempo:N', title='⏱️ Tiempo Oficial'),
-                    alt.Tooltip('Fecha Fmt:N', title='📅 Fecha'),
-                    alt.Tooltip('Evento:N', title='🏆 Torneo / Evento'),
-                    alt.Tooltip('Curso:N', title='🏊 Curso'),
-                    alt.Tooltip('Edad_Evt:N', title='🎂 Edad'),
-                    alt.Tooltip('Posicion:N', title='🏅 Posición')
-                ]
-            )
-            
-            layers = [chart_line, chart_points]
-            
-            if mostrar_etiquetas:
-                chart_labels = base_chart.mark_text(
-                    align='center',
-                    baseline='bottom',
-                    dy=-12,
-                    fontSize=11,
-                    fontWeight='bold'
-                ).encode(
-                    x=alt.X('Fecha Inicio:T'),
-                    y=alt.Y('Segundos:Q', scale=y_scale),
-                    text=alt.Text('Tiempo:N'),
-                    color=alt.Color('Nombre:N', legend=None)
-                )
-                layers.append(chart_labels)
+            # Aplicar filtro de año si se seleccionó uno específico
+            chart_data = an_filtered.copy()
+            if filtro_año != "Todos los años":
+                chart_data = chart_data[chart_data['Fecha Inicio'].astype(str).str.startswith(filtro_año)]
                 
-            # Líneas de referencia para Tiempos Tope Nacionales
-            min_fecha_evt = an_filtered['Fecha Inicio'].min()
-            
-            if sec_tope_cc is not None:
-                rule_cc = alt.Chart(pd.DataFrame({'Segundos': [sec_tope_cc]})).mark_rule(
-                    strokeDash=[6, 4],
-                    strokeWidth=2.5,
-                    color='#e74c3c'
-                ).encode(
-                    y=alt.Y('Segundos:Q', scale=y_scale),
-                    tooltip=[alt.Tooltip('Segundos:Q', title='🔴 Tope Nacional CC (s)')]
-                )
-                lbl_cc = alt.Chart(pd.DataFrame({
-                    'Fecha Inicio': [min_fecha_evt],
-                    'Segundos': [sec_tope_cc],
-                    'label': [f'🚩 Tope Nacional CC: {tiempo_tope_cc_str}']
-                })).mark_text(
-                    align='left',
-                    baseline='bottom',
-                    dy=-5,
-                    dx=6,
-                    fontSize=11,
-                    fontWeight='bold',
-                    color='#e74c3c'
-                ).encode(
-                    x='Fecha Inicio:T',
-                    y=alt.Y('Segundos:Q', scale=y_scale),
-                    text='label:N'
-                )
-                layers.extend([rule_cc, lbl_cc])
+            if chart_data.empty:
+                st.warning(f"No hay competencias registradas en el año {filtro_año}.")
+            else:
+                # Construir gráfica interactiva con Plotly (Soporte nativo para Zoom, Pan, Drag-to-zoom y Hover)
+                fig = go.Figure()
+                colores_nadador = {'Ian': '#2980b9', 'Iker': '#e67e22'}
                 
-            if sec_tope_cl is not None:
-                rule_cl = alt.Chart(pd.DataFrame({'Segundos': [sec_tope_cl]})).mark_rule(
-                    strokeDash=[6, 4],
-                    strokeWidth=2.5,
-                    color='#8e44ad'
-                ).encode(
-                    y=alt.Y('Segundos:Q', scale=y_scale),
-                    tooltip=[alt.Tooltip('Segundos:Q', title='🟣 Tope Nacional CL (s)')]
+                for n in chart_data["Nombre"].unique():
+                    sub = chart_data[chart_data["Nombre"] == n].copy()
+                    color_n = colores_nadador.get(n, '#16a085')
+                    
+                    hover_texts = []
+                    text_labels = []
+                    
+                    min_idx = sub["Segundos"].idxmin()
+                    last_idx = sub.index[-1]
+                    
+                    for idx, r in sub.iterrows():
+                        pos_str = f"{int(float(r['Posicion']))}" if pd.notna(r.get('Posicion')) and str(r.get('Posicion')).strip() not in ['', '<NA>', 'nan', 'None'] else "-"
+                        tot_str = f"{int(float(r['Participantes']))}" if pd.notna(r.get('Participantes')) and str(r.get('Participantes')).strip() not in ['', '<NA>', 'nan', 'None'] else ""
+                        p_str = f"{pos_str} / {tot_str}" if tot_str else pos_str
+                        
+                        hover_texts.append(
+                            f"<b>{r['Nombre']}</b><br>"
+                            f"⏱️ Tiempo Oficial: <b>{r['Tiempo']}</b> ({r['Segundos']:.2f} s)<br>"
+                            f"📅 Fecha: {r['Fecha Fmt']}<br>"
+                            f"🏆 Torneo: {r.get('Evento', '')} ({r.get('Curso', '')})<br>"
+                            f"🎂 Edad: {r.get('Edad_Evt', '')}<br>"
+                            f"🏅 Posición: {p_str}"
+                        )
+                        
+                        if modo_etiquetas == "⭐ Solo Mejor Marca (PB) y Último Tiempo (Recomendado)":
+                            if idx == min_idx:
+                                text_labels.append(f"⭐ PB: {r['Tiempo']}")
+                            elif idx == last_idx:
+                                text_labels.append(f"🏁 Último: {r['Tiempo']}")
+                            else:
+                                text_labels.append("")
+                        elif modo_etiquetas == "🔢 Todas las competencias":
+                            text_labels.append(f"{r['Tiempo']}")
+                        else:
+                            text_labels.append("")
+                            
+                    fig.add_trace(go.Scatter(
+                        x=sub["Fecha_Obj"],
+                        y=sub["Segundos"],
+                        mode='lines+markers+text' if any(text_labels) else 'lines+markers',
+                        name=n,
+                        line=dict(color=color_n, width=3),
+                        marker=dict(size=11, color=color_n, line=dict(width=1.5, color='white')),
+                        text=text_labels if any(text_labels) else None,
+                        textposition='top center',
+                        textfont=dict(size=11, color=color_n),
+                        hoverinfo='text',
+                        hovertext=hover_texts
+                    ))
+                    
+                # Añadir líneas de referencia de Campeonato Nacional si existen
+                if sec_tope_cc is not None:
+                    fig.add_hline(
+                        y=sec_tope_cc,
+                        line_dash="dash",
+                        line_color="#e74c3c",
+                        line_width=2.5,
+                        annotation_text=f"🚩 Tope Nacional CC: {tiempo_tope_cc_str}",
+                        annotation_position="top left",
+                        annotation_font_color="#e74c3c",
+                        annotation_font_size=12
+                    )
+                    
+                if sec_tope_cl is not None:
+                    fig.add_hline(
+                        y=sec_tope_cl,
+                        line_dash="dash",
+                        line_color="#8e44ad",
+                        line_width=2.5,
+                        annotation_text=f"🚩 Tope Nacional CL: {tiempo_tope_cl_str}",
+                        annotation_position="bottom left",
+                        annotation_font_color="#8e44ad",
+                        annotation_font_size=12
+                    )
+                    
+                fig.update_layout(
+                    xaxis_title="Fecha de Competencia",
+                    yaxis_title="Tiempo (Segundos)",
+                    hovermode="closest",
+                    dragmode="zoom",
+                    margin=dict(l=40, r=40, t=30, b=40),
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
                 )
-                lbl_cl = alt.Chart(pd.DataFrame({
-                    'Fecha Inicio': [min_fecha_evt],
-                    'Segundos': [sec_tope_cl],
-                    'label': [f'🚩 Tope Nacional CL: {tiempo_tope_cl_str}']
-                })).mark_text(
-                    align='left',
-                    baseline='top',
-                    dy=5,
-                    dx=6,
-                    fontSize=11,
-                    fontWeight='bold',
-                    color='#8e44ad'
-                ).encode(
-                    x='Fecha Inicio:T',
-                    y=alt.Y('Segundos:Q', scale=y_scale),
-                    text='label:N'
-                )
-                layers.extend([rule_cl, lbl_cl])
                 
-            chart = alt.layer(*layers).interactive()
-            st.altair_chart(chart, use_container_width=True)
+                # Renderizar en Streamlit con soporte interactivo completo
+                st.plotly_chart(fig, use_container_width=True, config={
+                    'scrollZoom': True,
+                    'displayModeBar': True,
+                    'displaylogo': False,
+                    'modeBarButtonsToAdd': ['drawline', 'drawopenpath', 'eraseshape']
+                })
             if sec_tope_cc is not None or sec_tope_cl is not None:
                 st.caption("🔴 **Línea roja discontinua:** Tope Nacional Curso Corto (CC) | 🟣 **Línea morada discontinua:** Tope Nacional Curso Largo (CL) | 💡 Pasa el cursor sobre cualquier punto o línea para ver todos los datos.")
             else:
