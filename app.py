@@ -544,6 +544,8 @@ with tab_analitica:
                         b_col2.success(f"🟣 **Tope Nacional CL ({a_cat_tope}):** **{tiempo_tope_cl_str}** | 🎉 ¡Marca conseguida! ({abs(diff_cl):.2f} s por debajo)")
                     else:
                         b_col2.info(f"🟣 **Tope Nacional CL ({a_cat_tope}):** **{tiempo_tope_cl_str}** | A **+{diff_cl:.2f} s** del objetivo")
+            else:
+                st.info(f"ℹ️ **Información sobre Marcas Nacionales:** La prueba de **{a_dist}m {a_estilo}** no forma parte del programa oficial del Campeonato Nacional (en Combinado Individual a nivel nacional la FMN únicamente convoca **200m y 400m**; además en alberca de 50m no existe la distancia de 100m C.I.). Por esta razón no se muestran líneas de tope nacional en esta prueba.")
             
             # Control de etiquetas en los puntos
             mostrar_etiquetas = st.checkbox("🏷️ Mostrar cifras de tiempo directamente sobre la gráfica", value=True)
@@ -662,7 +664,10 @@ with tab_analitica:
                 
             chart = alt.layer(*layers).interactive()
             st.altair_chart(chart, use_container_width=True)
-            st.caption("🔴 **Línea roja discontinua:** Tope Nacional Curso Corto (CC) | 🟣 **Línea morada discontinua:** Tope Nacional Curso Largo (CL) | 💡 Pasa el cursor sobre cualquier punto o línea para ver todos los datos.")
+            if sec_tope_cc is not None or sec_tope_cl is not None:
+                st.caption("🔴 **Línea roja discontinua:** Tope Nacional Curso Corto (CC) | 🟣 **Línea morada discontinua:** Tope Nacional Curso Largo (CL) | 💡 Pasa el cursor sobre cualquier punto o línea para ver todos los datos.")
+            else:
+                st.caption("💡 Pasa el cursor sobre cualquier punto para ver el detalle de la competencia.")
             
             # Selector de inspección por competencia
             st.markdown("#### 🔍 Detalle de Competencia")
