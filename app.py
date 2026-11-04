@@ -548,18 +548,30 @@ with tab_analitica:
             # Control de etiquetas en los puntos
             mostrar_etiquetas = st.checkbox("🏷️ Mostrar cifras de tiempo directamente sobre la gráfica", value=True)
             
+            # Calcular escala Y unificada que incluya tanto los tiempos del nadador como las marcas tope nacionales
+            all_y_vals = list(an_filtered['Segundos'].dropna())
+            if sec_tope_cc is not None:
+                all_y_vals.append(sec_tope_cc)
+            if sec_tope_cl is not None:
+                all_y_vals.append(sec_tope_cl)
+                
+            min_y = min(all_y_vals)
+            max_y = max(all_y_vals)
+            padding_y = (max_y - min_y) * 0.08 if max_y != min_y else 2.0
+            y_scale = alt.Scale(domain=[max(0.0, min_y - padding_y), max_y + padding_y])
+            
             # Capas de la gráfica en Altair
             base_chart = alt.Chart(an_filtered)
             
             chart_line = base_chart.mark_line(strokeWidth=3).encode(
                 x=alt.X('Fecha Inicio:T', title='Fecha'),
-                y=alt.Y('Segundos:Q', title='Tiempo (Segundos)', scale=alt.Scale(zero=False)),
+                y=alt.Y('Segundos:Q', title='Tiempo (Segundos)', scale=y_scale),
                 color=alt.Color('Nombre:N', legend=alt.Legend(title="Nadador"))
             )
             
             chart_points = base_chart.mark_point(size=140, filled=True).encode(
                 x=alt.X('Fecha Inicio:T'),
-                y=alt.Y('Segundos:Q'),
+                y=alt.Y('Segundos:Q', scale=y_scale),
                 color=alt.Color('Nombre:N', legend=None),
                 tooltip=[
                     alt.Tooltip('Nombre:N', title='👤 Nadador'),
@@ -583,34 +595,70 @@ with tab_analitica:
                     fontWeight='bold'
                 ).encode(
                     x=alt.X('Fecha Inicio:T'),
-                    y=alt.Y('Segundos:Q'),
+                    y=alt.Y('Segundos:Q', scale=y_scale),
                     text=alt.Text('Tiempo:N'),
                     color=alt.Color('Nombre:N', legend=None)
                 )
                 layers.append(chart_labels)
                 
             # Líneas de referencia para Tiempos Tope Nacionales
+            min_fecha_evt = an_filtered['Fecha Inicio'].min()
+            
             if sec_tope_cc is not None:
-                rule_cc = alt.Chart(pd.DataFrame({'y': [sec_tope_cc], 'label': [f'Tope Nacional CC: {tiempo_tope_cc_str}']})).mark_rule(
+                rule_cc = alt.Chart(pd.DataFrame({'Segundos': [sec_tope_cc]})).mark_rule(
                     strokeDash=[6, 4],
-                    strokeWidth=2,
+                    strokeWidth=2.5,
                     color='#e74c3c'
                 ).encode(
-                    y='y:Q',
-                    tooltip=[alt.Tooltip('label:N', title='Referencia')]
+                    y=alt.Y('Segundos:Q', scale=y_scale),
+                    tooltip=[alt.Tooltip('Segundos:Q', title='🔴 Tope Nacional CC (s)')]
                 )
-                layers.append(rule_cc)
+                lbl_cc = alt.Chart(pd.DataFrame({
+                    'Fecha Inicio': [min_fecha_evt],
+                    'Segundos': [sec_tope_cc],
+                    'label': [f'🚩 Tope Nacional CC: {tiempo_tope_cc_str}']
+                })).mark_text(
+                    align='left',
+                    baseline='bottom',
+                    dy=-5,
+                    dx=6,
+                    fontSize=11,
+                    fontWeight='bold',
+                    color='#e74c3c'
+                ).encode(
+                    x='Fecha Inicio:T',
+                    y=alt.Y('Segundos:Q', scale=y_scale),
+                    text='label:N'
+                )
+                layers.extend([rule_cc, lbl_cc])
                 
             if sec_tope_cl is not None:
-                rule_cl = alt.Chart(pd.DataFrame({'y': [sec_tope_cl], 'label': [f'Tope Nacional CL: {tiempo_tope_cl_str}']})).mark_rule(
+                rule_cl = alt.Chart(pd.DataFrame({'Segundos': [sec_tope_cl]})).mark_rule(
                     strokeDash=[6, 4],
-                    strokeWidth=2,
+                    strokeWidth=2.5,
                     color='#8e44ad'
                 ).encode(
-                    y='y:Q',
-                    tooltip=[alt.Tooltip('label:N', title='Referencia')]
+                    y=alt.Y('Segundos:Q', scale=y_scale),
+                    tooltip=[alt.Tooltip('Segundos:Q', title='🟣 Tope Nacional CL (s)')]
                 )
-                layers.append(rule_cl)
+                lbl_cl = alt.Chart(pd.DataFrame({
+                    'Fecha Inicio': [min_fecha_evt],
+                    'Segundos': [sec_tope_cl],
+                    'label': [f'🚩 Tope Nacional CL: {tiempo_tope_cl_str}']
+                })).mark_text(
+                    align='left',
+                    baseline='top',
+                    dy=5,
+                    dx=6,
+                    fontSize=11,
+                    fontWeight='bold',
+                    color='#8e44ad'
+                ).encode(
+                    x='Fecha Inicio:T',
+                    y=alt.Y('Segundos:Q', scale=y_scale),
+                    text='label:N'
+                )
+                layers.extend([rule_cl, lbl_cl])
                 
             chart = alt.layer(*layers).interactive()
             st.altair_chart(chart, use_container_width=True)
