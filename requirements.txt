@@ -3,3 +3,4 @@ streamlit
 google-generativeai
 pandas
 pymupdf
+plotly
