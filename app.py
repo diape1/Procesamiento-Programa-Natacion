@@ -183,12 +183,18 @@ with tab_ranking:
             with c1:
                 search_name = st.text_input("Nombre del Nadador (búsqueda inteligente)")
             
-            if search_name:
-                search_norm = remove_accents(search_name).lower()
+            search_clean = search_name.strip() if search_name else ""
+            if search_clean:
+                search_norm = remove_accents(search_clean).lower()
                 df_rank['Nombre_Norm'] = df_rank['Nombre'].apply(remove_accents).str.lower()
                 
-                # Filtro inicial por nombre
-                filtered_rank = df_rank[df_rank['Nombre_Norm'].str.contains(search_norm, na=False)].copy()
+                # Filtro inicial inteligente por nombre (elimina espacios, insensible a mayúsculas/minúsculas y acentos, soporta palabras en cualquier orden)
+                tokens = [t for t in search_norm.split() if t]
+                if len(tokens) > 1:
+                    mask = df_rank['Nombre_Norm'].apply(lambda n: all(tok in n for tok in tokens))
+                    filtered_rank = df_rank[mask].copy()
+                else:
+                    filtered_rank = df_rank[df_rank['Nombre_Norm'].str.contains(search_norm, na=False, regex=False)].copy()
                 filtered_rank = filtered_rank.drop(columns=['Nombre_Norm'])
                 
                 if len(filtered_rank) > 0:
@@ -249,7 +255,7 @@ with tab_ranking:
                         styled_df = styled_df.set_properties(subset=['Posición'], **{'font-weight': 'bold', 'color': '#003366', 'background-color': '#e6f2ff'})
                     st.dataframe(styled_df, use_container_width=True, hide_index=True)
                 else:
-                    st.warning(f"No se encontró a nadie llamado '{search_name}'. Verifica la ortografía.")
+                    st.warning(f"No se encontró a nadie llamado '{search_clean}'. Verifica la ortografía.")
         else:
             st.write("Filtra paso a paso para ver la tabla completa del ranking en un evento específico.")
             fechas_all = list(df_rank["Fecha_Ranking"].dropna().unique())
@@ -296,14 +302,19 @@ with tab_ranking:
                 })
                 
                 highlight = st.text_input("🔍 Resaltar nadador (escribe un nombre o apellido para encontrarlo rápido en la tabla)")
+                hl_clean = highlight.strip() if highlight else ""
+                hl_norm = remove_accents(hl_clean).lower() if hl_clean else ""
+                hl_tokens = [t for t in hl_norm.split() if t]
                 
                 cols_des = ['Ranking', 'Distancia', 'Estilo', 'Posición', 'Tiempo', 'Edad', 'Nombre', 'Fecha', 'Lugar']
                 cols_fin = [col for col in cols_des if col in final_view.columns]
                 final_view = final_view[cols_fin]
                 
                 def color_rows_full(row):
-                    if highlight and highlight.lower() in str(row.get('Nombre', '')).lower():
-                        return ['background-color: rgba(46, 204, 113, 0.4)'] * len(row)
+                    if hl_tokens:
+                        nom_norm = remove_accents(str(row.get('Nombre', ''))).lower()
+                        if all(tok in nom_norm for tok in hl_tokens):
+                            return ['background-color: rgba(46, 204, 113, 0.4)'] * len(row)
                     return [''] * len(row)
                     
                 styled_df2 = final_view.style.apply(color_rows_full, axis=1)
