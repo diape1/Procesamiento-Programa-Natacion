@@ -30,6 +30,10 @@ def extract_ranking_pdf(pdf_file):
         current_distancia = ""
         current_estilo = ""
         
+        pattern = re.compile(
+            r'^(\d+)\*?\s+x?([\d:.]+)(?:\s+([A-Z0-9]{1,4}))?\s+([A-Za-z0-9\u00C0-\u017F\s\.\'\-]+,\s*[A-Za-z0-9\u00C0-\u017F\s\.\'\-]+?)\s+(\d{1,2})\s+([A-Za-z0-9\.\-\/\s]+?)\s+(\d{2}/\d{2}/\d{4})\s+(.*)$'
+        )
+        
         for page in pdf.pages:
             text = page.extract_text(layout=True)
             if not text: continue
@@ -43,15 +47,13 @@ def extract_ranking_pdf(pdf_file):
                     continue
                     
                 # Buscar fila de nadador
-                # Ej: 1     39.57 L     Castaeda Rivera, Frida Paulina 8 CDMX 17/04/2026 CAMPEONATO REGIONAL CL 2026
-                # Ej: 18    41.46 L     Gonzalez Urbina, Nadia  10 MOCT-D F 16/05/2026 2QdRoO T orneo
-                # Puntos podria no estar, o el equipo podria tener espacios
-                m_rank = re.match(r'^(\d+)\s+([\d:.]+)\s+[LS]\s+(.*?)\s+(\d+)\s+([A-Z0-9-]+\s?[A-Z]*)\s+(\d{2}/\d{2}/\d{4})\s+(.*)$', line)
+                m_rank = pattern.match(line)
                 if m_rank:
-                    pos, tiempo, nombre, edad, equipo, fecha, lugar = m_rank.groups()
+                    pos, tiempo, premio, nombre, edad, equipo, fecha, lugar = m_rank.groups()
                     # Eliminar basurilla del OCR en el nombre y equipo
                     nombre = re.sub(r'\s{2,}', ' ', nombre).strip()
-                    equipo = equipo.replace(' ', '').strip() # MOCT-D F -> MOCT-DF
+                    nombre = re.sub(r'^5([a-z])', r'S\1', nombre)
+                    equipo = re.sub(r'\s+', '', equipo).strip()
                     lugar = re.sub(r'\s{2,}', ' ', lugar).strip()
                     
                     events_data.append({
@@ -92,15 +94,21 @@ if __name__ == "__main__":
             
             df_new = pd.DataFrame(new_data)
             
-            if os.path.exists("ranking_historico.csv"):
-                df_old = pd.read_csv("ranking_historico.csv")
+            csv_path = "ranking_historico.csv"
+            if not os.path.exists(csv_path):
+                alt_path = os.path.join(os.path.dirname(__file__), "ranking_historico.csv")
+                if os.path.exists(alt_path):
+                    csv_path = alt_path
+                    
+            if os.path.exists(csv_path):
+                df_old = pd.read_csv(csv_path)
                 # Eliminar registros con la misma Fecha_Ranking para evitar duplicados
                 df_old = df_old[df_old['Fecha_Ranking'] != ranking_date]
                 df_final = pd.concat([df_old, df_new], ignore_index=True)
             else:
                 df_final = df_new
                 
-            df_final.to_csv("ranking_historico.csv", index=False)
-            print("ranking_historico.csv actualizado exitosamente!")
+            df_final.to_csv(csv_path, index=False)
+            print(f"{csv_path} actualizado exitosamente!")
         except Exception as e:
             print(f"Ocurrio un error: {e}")
