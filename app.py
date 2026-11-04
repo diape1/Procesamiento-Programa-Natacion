@@ -12,6 +12,18 @@ def format_time_str(t_str):
         t = t.replace(".", ":", 1)
     return t
 
+def parse_time_to_seconds(t_str):
+    try:
+        t_str = str(t_str).strip()
+        t_str = format_time_str(t_str)
+        if ':' in t_str:
+            p = t_str.split(':')
+            return int(p[0]) * 60 + float(p[1])
+        else:
+            return float(t_str)
+    except:
+        return None
+
 import unicodedata
 from datetime import datetime, time
 
@@ -434,12 +446,12 @@ with tab_resultados:
 
 # ----------------- TAB 5: ANALÍTICA -----------------
 with tab_analitica:
-    st.write("Analiza el progreso y evolución de los tiempos.")
+    st.write("Analiza el progreso, evolución de los tiempos y comparación con marcas nacionales.")
     if os.path.exists("resultados_historicos.csv"):
         df_an = pd.read_csv("resultados_historicos.csv").dropna(subset=["Segundos", "Fecha Inicio"])
         df_an["Tiempo"] = df_an["Tiempo"].astype(str).apply(format_time_str)
         
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1: 
             a_nombre = st.selectbox("Nadador", ["Ambos"] + sorted(list(df_an["Nombre"].dropna().unique())), key="an_nombre")
             
@@ -453,6 +465,10 @@ with tab_analitica:
         with col3: 
             a_dist = st.selectbox("Distancia", sort_dist(list(df_a2["Distancia"].astype(str).dropna().unique())), key="an_dist")
             
+        with col4:
+            cat_default_idx = 0 if (a_nombre == "Ian" or a_nombre == "Ambos") else 1
+            a_cat_tope = st.selectbox("Categoría Tope Nacional", ["13-14", "12", "15-16", "17-21"], index=cat_default_idx, key="an_cat_tope")
+            
         an_filtered = df_a2[df_a2["Distancia"].astype(str) == a_dist]
             
         if not an_filtered.empty:
@@ -462,11 +478,9 @@ with tab_analitica:
             an_filtered = an_filtered.sort_values(by="Fecha Inicio", ascending=True)
             
             # Formatear el DataFrame para usar Altair y mostrar tooltip con Evento y Fecha (dd mmm aaaa)
-            # Primero convertir a datetime
             an_filtered["Fecha_Obj"] = pd.to_datetime(an_filtered["Fecha Inicio"])
-            # Diccionario de meses en español para manual formatting
             meses = {1:'Ene', 2:'Feb', 3:'Mar', 4:'Abr', 5:'May', 6:'Jun', 7:'Jul', 8:'Ago', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dic'}
-            an_filtered["Fecha Fmt"] = an_filtered["Fecha_Obj"].apply(lambda x: f"{x.day:02d} {meses.get(x.month, '')} {x.year}")
+            an_filtered["Fecha Fmt"] = an_filtered["Fecha_Obj"].apply(lambda x: f"{x.day:02d} {meses.get(x.month, '')} {x.year}" if pd.notna(x) else "")
             
             # Calcular Edad en el momento de la competencia
             def calcular_edad(row):
@@ -482,22 +496,180 @@ with tab_analitica:
             # Tomar el mejor tiempo si un nadador tiene múltiples hits en el mismo evento (para evitar líneas duplicadas confusas)
             an_filtered = an_filtered.loc[an_filtered.groupby(["Nombre", "Fecha Inicio"])["Segundos"].idxmin()]
             
-            chart = alt.Chart(an_filtered).mark_line(point=True).encode(
-                x=alt.X('Fecha Inicio:T', title='Fecha'),
-                y=alt.Y('Segundos:Q', title='Segundos', scale=alt.Scale(zero=False)),
-                color='Nombre:N',
-                tooltip=[
-                    alt.Tooltip('Nombre:N', title='Nadador'),
-                    alt.Tooltip('Edad_Evt:N', title='Edad'),
-                    alt.Tooltip('Fecha Fmt:N', title='Fecha'),
-                    alt.Tooltip('Curso:N', title='Curso'),
-                    alt.Tooltip('Evento:N', title='Evento'),
-                    alt.Tooltip('Tiempo:N', title='Tiempo')
-                ]
-            ).interactive()
+            # Buscar Tiempos Tope Nacionales en tiempos_tope.csv
+            tiempo_tope_cc_str = None
+            tiempo_tope_cl_str = None
+            sec_tope_cc = None
+            sec_tope_cl = None
             
-            st.altair_chart(chart, use_container_width=True)
+            if os.path.exists("tiempos_tope.csv"):
+                df_tope_db = pd.read_csv("tiempos_tope.csv")
+                estilo_tope = "Combinado" if a_estilo in ["Cobinado", "Combinado", "C.I."] else a_estilo
+                try:
+                    dist_int = int(a_dist)
+                except:
+                    dist_int = None
+                    
+                if dist_int is not None:
+                    match_tope = df_tope_db[
+                        (df_tope_db["Rama"] == "Varonil") &
+                        (df_tope_db["Categoria"].astype(str) == str(a_cat_tope)) &
+                        (df_tope_db["Estilo"] == estilo_tope) &
+                        (df_tope_db["Distancia"] == dist_int)
+                    ]
+                    
+                    match_cc = match_tope[match_tope["Curso"] == "Corto"]
+                    if not match_cc.empty:
+                        tiempo_tope_cc_str = match_cc.iloc[0]["Tiempo"]
+                        sec_tope_cc = parse_time_to_seconds(tiempo_tope_cc_str)
                         
+                    match_cl = match_tope[match_tope["Curso"] == "Largo"]
+                    if not match_cl.empty:
+                        tiempo_tope_cl_str = match_cl.iloc[0]["Tiempo"]
+                        sec_tope_cl = parse_time_to_seconds(tiempo_tope_cl_str)
+            
+            # Banner informativo de marcas nacionales
+            if sec_tope_cc is not None or sec_tope_cl is not None:
+                b_col1, b_col2 = st.columns(2)
+                best_sec = an_filtered["Segundos"].min()
+                if sec_tope_cc is not None:
+                    diff_cc = best_sec - sec_tope_cc
+                    if diff_cc <= 0:
+                        b_col1.success(f"🔴 **Tope Nacional CC ({a_cat_tope}):** **{tiempo_tope_cc_str}** | 🎉 ¡Marca conseguida! ({abs(diff_cc):.2f} s por debajo)")
+                    else:
+                        b_col1.info(f"🔴 **Tope Nacional CC ({a_cat_tope}):** **{tiempo_tope_cc_str}** | A **+{diff_cc:.2f} s** del objetivo")
+                if sec_tope_cl is not None:
+                    diff_cl = best_sec - sec_tope_cl
+                    if diff_cl <= 0:
+                        b_col2.success(f"🟣 **Tope Nacional CL ({a_cat_tope}):** **{tiempo_tope_cl_str}** | 🎉 ¡Marca conseguida! ({abs(diff_cl):.2f} s por debajo)")
+                    else:
+                        b_col2.info(f"🟣 **Tope Nacional CL ({a_cat_tope}):** **{tiempo_tope_cl_str}** | A **+{diff_cl:.2f} s** del objetivo")
+            
+            # Control de etiquetas en los puntos
+            mostrar_etiquetas = st.checkbox("🏷️ Mostrar cifras de tiempo directamente sobre la gráfica", value=True)
+            
+            # Capas de la gráfica en Altair
+            base_chart = alt.Chart(an_filtered)
+            
+            chart_line = base_chart.mark_line(strokeWidth=3).encode(
+                x=alt.X('Fecha Inicio:T', title='Fecha'),
+                y=alt.Y('Segundos:Q', title='Tiempo (Segundos)', scale=alt.Scale(zero=False)),
+                color=alt.Color('Nombre:N', legend=alt.Legend(title="Nadador"))
+            )
+            
+            chart_points = base_chart.mark_point(size=140, filled=True).encode(
+                x=alt.X('Fecha Inicio:T'),
+                y=alt.Y('Segundos:Q'),
+                color=alt.Color('Nombre:N', legend=None),
+                tooltip=[
+                    alt.Tooltip('Nombre:N', title='👤 Nadador'),
+                    alt.Tooltip('Tiempo:N', title='⏱️ Tiempo Oficial'),
+                    alt.Tooltip('Fecha Fmt:N', title='📅 Fecha'),
+                    alt.Tooltip('Evento:N', title='🏆 Torneo / Evento'),
+                    alt.Tooltip('Curso:N', title='🏊 Curso'),
+                    alt.Tooltip('Edad_Evt:N', title='🎂 Edad'),
+                    alt.Tooltip('Posicion:N', title='🏅 Posición')
+                ]
+            )
+            
+            layers = [chart_line, chart_points]
+            
+            if mostrar_etiquetas:
+                chart_labels = base_chart.mark_text(
+                    align='center',
+                    baseline='bottom',
+                    dy=-12,
+                    fontSize=11,
+                    fontWeight='bold'
+                ).encode(
+                    x=alt.X('Fecha Inicio:T'),
+                    y=alt.Y('Segundos:Q'),
+                    text=alt.Text('Tiempo:N'),
+                    color=alt.Color('Nombre:N', legend=None)
+                )
+                layers.append(chart_labels)
+                
+            # Líneas de referencia para Tiempos Tope Nacionales
+            if sec_tope_cc is not None:
+                rule_cc = alt.Chart(pd.DataFrame({'y': [sec_tope_cc], 'label': [f'Tope Nacional CC: {tiempo_tope_cc_str}']})).mark_rule(
+                    strokeDash=[6, 4],
+                    strokeWidth=2,
+                    color='#e74c3c'
+                ).encode(
+                    y='y:Q',
+                    tooltip=[alt.Tooltip('label:N', title='Referencia')]
+                )
+                layers.append(rule_cc)
+                
+            if sec_tope_cl is not None:
+                rule_cl = alt.Chart(pd.DataFrame({'y': [sec_tope_cl], 'label': [f'Tope Nacional CL: {tiempo_tope_cl_str}']})).mark_rule(
+                    strokeDash=[6, 4],
+                    strokeWidth=2,
+                    color='#8e44ad'
+                ).encode(
+                    y='y:Q',
+                    tooltip=[alt.Tooltip('label:N', title='Referencia')]
+                )
+                layers.append(rule_cl)
+                
+            chart = alt.layer(*layers).interactive()
+            st.altair_chart(chart, use_container_width=True)
+            st.caption("🔴 **Línea roja discontinua:** Tope Nacional Curso Corto (CC) | 🟣 **Línea morada discontinua:** Tope Nacional Curso Largo (CL) | 💡 Pasa el cursor sobre cualquier punto o línea para ver todos los datos.")
+            
+            # Selector de inspección por competencia
+            st.markdown("#### 🔍 Detalle de Competencia")
+            an_filtered_desc = an_filtered.sort_values(by="Fecha Inicio", ascending=False)
+            comp_options = [
+                f"{row['Fecha Fmt']} | {row['Evento']} ({row['Curso']}) | ⏱️ {row['Tiempo']} | {row['Nombre']}"
+                for _, row in an_filtered_desc.iterrows()
+            ]
+            sel_comp = st.selectbox("Selecciona una competencia para ver todos sus datos:", comp_options)
+            if sel_comp:
+                sel_idx = comp_options.index(sel_comp)
+                r_sel = an_filtered_desc.iloc[sel_idx]
+                
+                c_d1, c_d2, c_d3, c_d4 = st.columns(4)
+                with c_d1:
+                    st.metric("⏱️ Tiempo Oficial", f"{r_sel['Tiempo']}")
+                with c_d2:
+                    st.metric("🏆 Torneo / Evento", f"{r_sel['Evento']}")
+                with c_d3:
+                    st.metric("📅 Fecha & Curso", f"{r_sel['Fecha Fmt']} ({r_sel['Curso']})")
+                with c_d4:
+                    pos_val = r_sel.get('Posicion')
+                    tot_val = r_sel.get('Participantes')
+                    pos_str = f"{int(float(pos_val))}" if pd.notna(pos_val) and str(pos_val).strip() not in ['', '<NA>', 'nan', 'None'] else "-"
+                    tot_str = f"{int(float(tot_val))}" if pd.notna(tot_val) and str(tot_val).strip() not in ['', '<NA>', 'nan', 'None'] else ""
+                    st.metric("🏅 Posición", f"{pos_str} / {tot_str}" if tot_str else pos_str)
+                
+                # Comparativa con marcas nacionales para esta carrera específica
+                sec_act = r_sel['Segundos']
+                if sec_tope_cc is not None or sec_tope_cl is not None:
+                    comp_cols = st.columns(2)
+                    if sec_tope_cc is not None:
+                        diff_cc_evt = sec_act - sec_tope_cc
+                        if diff_cc_evt <= 0:
+                            comp_cols[0].success(f"**Tope CC ({tiempo_tope_cc_str}):** 🎉 ¡Marca Conseguida! ({abs(diff_cc_evt):.2f} s por debajo)")
+                        else:
+                            comp_cols[0].info(f"**Tope CC ({tiempo_tope_cc_str}):** A **+{diff_cc_evt:.2f} s** del tope")
+                    if sec_tope_cl is not None:
+                        diff_cl_evt = sec_act - sec_tope_cl
+                        if diff_cl_evt <= 0:
+                            comp_cols[1].success(f"**Tope CL ({tiempo_tope_cl_str}):** 🎉 ¡Marca Conseguida! ({abs(diff_cl_evt):.2f} s por debajo)")
+                        else:
+                            comp_cols[1].info(f"**Tope CL ({tiempo_tope_cl_str}):** A **+{diff_cl_evt:.2f} s** del tope")
+            
+            # Tabla desplegable con todas las competencias graficadas
+            with st.expander("📋 Ver tabla completa con todas las competencias graficadas"):
+                tbl_cols = ['Fecha Fmt', 'Evento', 'Curso', 'Tiempo', 'Segundos', 'Edad_Evt', 'Posicion', 'Participantes']
+                tbl_df = an_filtered_desc[[c for c in tbl_cols if c in an_filtered_desc.columns]].copy()
+                tbl_df = tbl_df.rename(columns={
+                    'Fecha Fmt': 'Fecha',
+                    'Edad_Evt': 'Edad',
+                    'Posicion': 'Posición'
+                })
+                st.dataframe(tbl_df, use_container_width=True, hide_index=True)
+            
             st.markdown("### Estadísticas")
             stats_cols = st.columns(len(an_filtered["Nombre"].unique()))
             for idx, n in enumerate(an_filtered["Nombre"].unique()):
