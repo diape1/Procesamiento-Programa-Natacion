@@ -230,9 +230,12 @@ with tab_ranking:
                     })
                     
                     # Seleccionar y ordenar columnas (agregando Nombre al inicio)
-                    columnas_deseadas = ['Ranking', 'Distancia', 'Estilo', 'Posición', 'Tiempo', 'Edad', 'Nombre', 'Fecha', 'Lugar']
+                    columnas_deseadas = ['Ranking', 'Distancia', 'Estilo', 'Posición', 'Tiempo', 'Edad', 'Nombre', 'Equipo', 'Fecha', 'Lugar']
                     columnas_finales = [col for col in columnas_deseadas if col in filtered_display.columns]
                     filtered_display = filtered_display[columnas_finales]
+                    
+                    if 'Equipo' in filtered_display.columns:
+                        filtered_display['Equipo'] = filtered_display['Equipo'].apply(lambda x: f"⭐ {x}" if 'PLAN' in str(x).upper() else str(x))
                     
                     # Ordenar por Nombre (para hacer bloques) y luego por fecha (Ranking) si es posible
                     if 'Nombre' in filtered_display.columns:
@@ -306,28 +309,52 @@ with tab_ranking:
                 hl_norm = remove_accents(hl_clean).lower() if hl_clean else ""
                 hl_tokens = [t for t in hl_norm.split() if t]
                 
-                cols_des = ['Ranking', 'Distancia', 'Estilo', 'Posición', 'Tiempo', 'Edad', 'Nombre', 'Fecha', 'Lugar']
+                cols_des = ['Ranking', 'Distancia', 'Estilo', 'Posición', 'Tiempo', 'Edad', 'Nombre', 'Equipo', 'Fecha', 'Lugar']
                 cols_fin = [col for col in cols_des if col in final_view.columns]
                 final_view = final_view[cols_fin]
                 
+                # Destacar badge en columna Equipo para Plan Sexenal
+                if 'Equipo' in final_view.columns:
+                    final_view['Equipo'] = final_view['Equipo'].apply(lambda x: f"⭐ {x}" if 'PLAN' in str(x).upper() else str(x))
+                
                 def color_rows_full(row):
+                    is_hl = False
                     if hl_tokens:
-                        nom_norm = remove_accents(str(row.get('Nombre', ''))).lower()
-                        if all(tok in nom_norm for tok in hl_tokens):
-                            return ['background-color: rgba(46, 204, 113, 0.4)'] * len(row)
-                    return [''] * len(row)
+                        text_search = (remove_accents(str(row.get('Nombre', ''))) + " " + remove_accents(str(row.get('Equipo', '')))).lower()
+                        if all(tok in text_search for tok in hl_tokens):
+                            is_hl = True
+                            
+                    is_plan = 'PLAN' in str(row.get('Equipo', '')).upper()
+                    
+                    styles = []
+                    for col in row.index:
+                        if is_hl:
+                            styles.append('background-color: rgba(46, 204, 113, 0.45); font-weight: bold;')
+                        elif is_plan:
+                            if col in ['Nombre', 'Equipo']:
+                                styles.append('background-color: rgba(255, 215, 0, 0.42); font-weight: bold;')
+                            elif col == 'Posición':
+                                styles.append('background-color: rgba(255, 215, 0, 0.52); font-weight: bold; color: #003366;')
+                            else:
+                                styles.append('background-color: rgba(255, 215, 0, 0.28); font-weight: bold;')
+                        else:
+                            if col == 'Posición':
+                                styles.append('font-weight: bold; color: #003366; background-color: #e6f2ff;')
+                            else:
+                                styles.append('')
+                    return styles
                     
                 styled_df2 = final_view.style.apply(color_rows_full, axis=1)
-                if 'Posición' in final_view.columns:
-                    styled_df2 = styled_df2.set_properties(subset=['Posición'], **{'font-weight': 'bold', 'color': '#003366', 'background-color': '#e6f2ff'})
                 
-                st.write(f"**Resultados encontrados:** {len(final_view)} nadadores")
+                plan_count = sum(1 for eq in final_view['Equipo'] if 'PLAN' in str(eq).upper()) if 'Equipo' in final_view.columns else 0
+                if plan_count > 0:
+                    st.write(f"**Resultados encontrados:** {len(final_view)} nadadores ({plan_count} de Plan Sexenal ⭐)")
+                else:
+                    st.write(f"**Resultados encontrados:** {len(final_view)} nadadores")
+                    
+                st.caption("🟡 **Fila dorada / Negritas (⭐):** Nadadores de Plan Sexenal | 🟢 **Fila verde:** Nadador resaltado por búsqueda")
                 st.dataframe(styled_df2, use_container_width=True, hide_index=True)
     else:
-        st.warning("No hay base de datos de ranking. Se agregará próximamente.")
-
-
-# ----------------- TAB 4: RESULTADOS PERSONALES -----------------
         st.warning("No hay base de datos de ranking. Se agregará próximamente.")
 
 
