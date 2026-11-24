@@ -25,6 +25,7 @@ def parse_time_to_seconds(t_str):
     except:
         return None
 
+import io
 import unicodedata
 from datetime import datetime, time
 
@@ -54,7 +55,89 @@ st.set_page_config(page_title="Gestor de Natación v1.8", layout="wide")
 st.title("🏊 Gestor Integral de Natación")
 st.caption("🚀 **Versión 1.8** — Soporte Dual: Meet Manager Oficial (Zona Sur) y Circuito Escolar (Justo Sierra)")
 
+def build_mobile_export_df():
+    """Convierte resultados_historicos.csv al formato exacto que importa MySwimHistory móvil."""
+    if not os.path.exists("resultados_historicos.csv"):
+        return None
+    df_src = pd.read_csv("resultados_historicos.csv")
+    if df_src.empty:
+        return None
+
+    def _clean_int_str(val):
+        if pd.isna(val):
+            return ""
+        s = str(val).strip()
+        if not s or s.lower() in ("nan", "<na>", "none"):
+            return ""
+        try:
+            return str(int(round(float(s))))
+        except Exception:
+            return s
+
+    def _fmt_fecha(val):
+        if pd.isna(val):
+            return ""
+        s = str(val).strip()
+        if "-" in s and len(s) >= 10 and s[:4].isdigit():
+            parts = s[:10].split("-")
+            return f"{parts[2]}/{parts[1]}/{parts[0]}"
+        return s
+
+    def _fmt_dist(val):
+        if pd.isna(val):
+            return ""
+        s = str(val).strip()
+        if s.endswith(".0"):
+            s = s[:-2]
+        if s and s.isdigit():
+            return f"{s}m"
+        return s
+
+    out = pd.DataFrame({
+        "Nadador": df_src["Nombre"].fillna("").astype(str).str.strip() if "Nombre" in df_src.columns else "",
+        "Competencia": df_src["Evento"].fillna("Competencia").astype(str).str.strip() if "Evento" in df_src.columns else "Competencia",
+        "Fecha": df_src["Fecha Inicio"].apply(_fmt_fecha) if "Fecha Inicio" in df_src.columns else "",
+        "Categoria": df_src["Categoria"].fillna("General").astype(str).str.strip() if "Categoria" in df_src.columns else "General",
+        "Distancia": df_src["Distancia"].apply(_fmt_dist) if "Distancia" in df_src.columns else "",
+        "Estilo": df_src["Estilo"].fillna("").astype(str).str.strip() if "Estilo" in df_src.columns else "",
+        "Tiempo": df_src["Tiempo"].fillna("").astype(str).apply(format_time_str) if "Tiempo" in df_src.columns else "",
+        "Posicion": df_src["Posicion"].apply(_clean_int_str) if "Posicion" in df_src.columns else "",
+        "Participantes": df_src["Participantes"].apply(_clean_int_str) if "Participantes" in df_src.columns else "",
+        "Tipo": df_src["Tipo"].fillna("Oficial").astype(str).str.strip() if "Tipo" in df_src.columns else "Oficial",
+        "Curso": df_src["Curso"].fillna("CC").astype(str).str.strip() if "Curso" in df_src.columns else "CC",
+    })
+    return out
+
+
 with st.sidebar:
+    st.markdown("### 📱 Exportar a App Móvil")
+    df_movil = build_mobile_export_df()
+    if df_movil is not None and not df_movil.empty:
+        csv_movil = df_movil.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
+        st.download_button(
+            "📥 Descargar CSV (App Móvil)",
+            data=csv_movil,
+            file_name="MySwimHistory_export.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+        try:
+            import openpyxl  # noqa: F401
+            xlsx_buf = io.BytesIO()
+            df_movil.to_excel(xlsx_buf, index=False, engine="openpyxl")
+            st.download_button(
+                "📥 Descargar Excel (.xlsx App Móvil)",
+                data=xlsx_buf.getvalue(),
+                file_name="MySwimHistory_export.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+            )
+        except ImportError:
+            pass
+    else:
+        st.caption("Sin registros en `resultados_historicos.csv` para exportar.")
+
+    st.markdown("---")
     with st.expander("ℹ️ Ayuda / Mantenimiento"):
         st.markdown('''
         **¿Cómo actualizar la base de datos?**
